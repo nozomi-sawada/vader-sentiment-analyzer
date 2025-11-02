@@ -70,7 +70,20 @@ VADER is a lexicon and rule-based sentiment analysis tool specifically attuned t
 
 ### Score Interpretation
 
-Compound Score thresholds based on the original paper:
+**Compound Score Range:** -1.0 to +1.0 (normalized)
+
+The compound score is normalized using the formula:
+```
+compound = Σ(valence_i) / √(Σ(valence_i²) + α)
+```
+where α = 15 (normalization parameter)
+
+This normalization ensures that:
+- Scores fall within the [-1.0, +1.0] range
+- Texts of different lengths can be fairly compared
+- Extreme values are appropriately dampened
+
+**Classification Thresholds** (based on the original paper):
 
 | Compound Score | Classification | Description |
 |----------------|----------------|-------------|
@@ -266,7 +279,7 @@ For more detailed information, see the `docs/` folder:
 - **[ALGORITHM.md](docs/ALGORITHM.md)** - Detailed algorithm implementation
 - **[LEXICON.md](docs/LEXICON.md)** - Lexicon structure and annotation methodology
 - **[CITATION.md](docs/CITATION.md)** - Detailed citation guide for academic use
-- **[EXAMPLES.md](docs/EXAMPLES.md)** - Usage examples and case studies
+
 
 ## License
 
@@ -355,7 +368,20 @@ VADERは、ソーシャルメディアテキストの感情分析に特化した
 
 ### スコアの解釈
 
-元論文に基づくCompound Scoreの閾値：
+**Compound Scoreの範囲:** -1.0～+1.0（正規化済み）
+
+Compound Scoreは以下の式で正規化されます：
+```
+compound = Σ(valence_i) / √(Σ(valence_i²) + α)
+```
+ここで α = 15（正規化パラメータ）
+
+この正規化により：
+- スコアが[-1.0, +1.0]の範囲に収まる
+- 異なる長さのテキストでも公平に比較可能
+- 極端な値が適切に抑制される
+
+**分類閾値**（元論文に基づく）：
 
 | Compound Score | 分類 | 説明 |
 |----------------|------|------|
@@ -551,7 +577,6 @@ Hutto & Gilbert (2014) は以下のデータセットでVADERの性能を検証�
 - **[ALGORITHM.md](docs/ALGORITHM.md)** - アルゴリズムの詳細実装
 - **[LEXICON.md](docs/LEXICON.md)** - レキシコンの構造とアノテーション方法論
 - **[CITATION.md](docs/CITATION.md)** - 学術利用のための詳細な引用ガイド
-- **[EXAMPLES.md](docs/EXAMPLES.md)** - 使用例とケーススタディ
 
 ## ライセンス
 

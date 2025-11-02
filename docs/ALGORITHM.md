@@ -477,6 +477,9 @@ sentiments.forEach(s => {
 
 const alpha = 15;
 const compound = sum / Math.sqrt(sumSquares + alpha);
+
+// Ensure compound stays within [-1, 1] range
+compound = Math.max(-1, Math.min(1, compound));
 ```
 
 ### 5.2 Why This Normalization Formula?
@@ -1138,6 +1141,9 @@ sentiments.forEach(s => {
 
 const alpha = 15;
 const compound = sum / Math.sqrt(sumSquares + alpha);
+
+// Compound Scoreを[-1, 1]の範囲に確実に収める
+compound = Math.max(-1, Math.min(1, compound));
 ```
 
 ### 5.2 なぜこの正規化式なのか？
