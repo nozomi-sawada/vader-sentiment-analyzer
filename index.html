@@ -752,7 +752,7 @@
             });
 
             const alpha = 15;
-            let compound = sum / Math.sqrt(sumSquares + alpha);
+            let compound = sum / Math.sqrt(sum * sum + alpha);
             
             // Normalize compound score to [-1, 1] range
             compound = Math.max(-1, Math.min(1, compound));

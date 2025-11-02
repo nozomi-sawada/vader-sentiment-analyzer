@@ -93,6 +93,20 @@ This normalization ensures that:
 
 **Note:** These thresholds were optimized for general social media text. Threshold adjustment may be necessary depending on domain and research objectives.
 
+**Important Note: Difference from VADER Paper**
+
+The VADER paper describes the normalization formula as:
+```
+compound = Σ(valence_i) / √(Σ(valence_i²) + α)
+```
+
+However, the **official Python implementation** uses:
+```
+compound = sum / √(sum² + α)
+```
+
+This tool follows the official Python implementation for compatibility with existing VADER users.
+
 ## Algorithm Details
 
 ### Computational Procedure
@@ -390,6 +404,20 @@ compound = Σ(valence_i) / √(Σ(valence_i²) + α)
 | score ≤ -0.05 | ネガティブ | 否定的な感情を含むテキスト |
 
 **注意:** これらの閾値は一般的なソーシャルメディアテキストに対して最適化されています。ドメインや研究目的に応じて、閾値の調整が必要となる場合があります。
+
+**重要な注意: VADER論文との違い**
+
+VADER論文では正規化の式を以下のように記述しています：
+```
+compound = Σ(valence_i) / √(Σ(valence_i²) + α)
+```
+
+しかし、**公式Python実装**では以下の式を使用しています：
+```
+compound = sum / √(sum² + α)
+```
+
+本ツールは既存のVADERユーザーとの互換性のため、公式Python実装に準拠しています。
 
 ## アルゴリズムの詳細
 

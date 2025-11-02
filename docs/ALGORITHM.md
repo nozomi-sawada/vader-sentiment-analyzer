@@ -476,11 +476,12 @@ sentiments.forEach(s => {
 });
 
 const alpha = 15;
-const compound = sum / Math.sqrt(sumSquares + alpha);
+let compound = sum / Math.sqrt(sum * sum + alpha);
 
 // Ensure compound stays within [-1, 1] range
 compound = Math.max(-1, Math.min(1, compound));
 ```
+**Important Note:** The VADER paper describes the formula as `sum / √(Σ(valence²) + α)`, but the official Python implementation uses `sum / √(sum² + α)`. This implementation follows the Python version for compatibility.
 
 ### 5.2 Why This Normalization Formula?
 
@@ -1140,11 +1141,12 @@ sentiments.forEach(s => {
 });
 
 const alpha = 15;
-const compound = sum / Math.sqrt(sumSquares + alpha);
+let compound = sum / Math.sqrt(sum * sum + alpha);
 
 // Compound Scoreを[-1, 1]の範囲に確実に収める
 compound = Math.max(-1, Math.min(1, compound));
 ```
+**重要な注意:** VADER論文では `sum / √(Σ(valence²) + α)` と記述されていますが、公式Python実装では `sum / √(sum² + α)` を使用しています。本実装は互換性のためPython版に準拠しています。
 
 ### 5.2 なぜこの正規化式なのか？
 
