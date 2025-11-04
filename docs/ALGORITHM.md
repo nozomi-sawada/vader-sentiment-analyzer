@@ -617,7 +617,70 @@ Rule application in VADER has **important ordering**:
 
 Negation is applied last so it affects scores already adjusted by other rules.
 
-### 6.4 Emoji Processing (Optional)
+### 6.4 Token Processing Strategy
+
+**Important Note on Token Processing:**
+
+The implementation processes **all tokens** in the input text, not just sentiment-bearing words:
+
+```javascript
+// Process ALL tokens for Python VADER compatibility
+tokens.forEach((token, i) => {
+    const lower = token.lower;
+    const original = token.text;
+    
+    // Check lexicon
+    let lexiconEntry = vaderLexicon[lower] || vaderLexicon[original];
+    
+    if (!lexiconEntry) {
+        // Non-sentiment words are also added with score 0
+        sentiments.push({
+            token: original,
+            type: 'neutral',
+            score: 0,
+            adjustedScore: 0
+        });
+        return;
+    }
+    
+    // Process sentiment words...
+});
+```
+
+**Why Process All Tokens?**
+
+1. **Python VADER Compatibility**: The original Python implementation includes all tokens in calculations
+2. **Accurate pos/neg/neu Ratios**: The proportions are calculated based on all tokens:
+   ```javascript
+   const total = posSum + Math.abs(negSum) + neuCount;  // All tokens
+   const pos = Math.abs(posSum / total);
+   const neg = Math.abs(negSum / total);
+   const neu = Math.abs(neuCount / total);
+   ```
+
+3. **Display Optimization**: While all tokens are processed internally, only sentiment-bearing words are shown in the detailed analysis for clarity
+
+**Processing Example:**
+
+Input: "I love this product"
+
+Internal processing (all 4 tokens):
+```
+[
+  {token: "I", score: 0, type: "neutral"},
+  {token: "love", score: 3.2, type: "positive"},
+  {token: "this", score: 0, type: "neutral"},
+  {token: "product", score: 0, type: "neutral"}
+]
+```
+
+Display (only sentiment words):
+```
+love: +3.2 (positive)
+```
+```
+
+### 6.5 Emoji Processing (Optional)
 
 ```javascript
 if (token.isEmoji && emojiLexicon[token.text]) {
@@ -1282,7 +1345,70 @@ VADERのルール適用には**順序が重要**：
 
 否定は最後に適用することで、他のルールで調整されたスコアに対して作用する。
 
-### 6.4 絵文字処理（オプション）
+### 6.4 トークン処理戦略
+
+**トークン処理に関する重要な注意:**
+
+この実装は、感情語だけでなく入力テキストの**全トークン**を処理します：
+
+```javascript
+// Python VADER互換のため全トークンを処理
+tokens.forEach((token, i) => {
+    const lower = token.lower;
+    const original = token.text;
+    
+    // レキシコンをチェック
+    let lexiconEntry = vaderLexicon[lower] || vaderLexicon[original];
+    
+    if (!lexiconEntry) {
+        // 非感情語もスコア0で追加
+        sentiments.push({
+            token: original,
+            type: 'neutral',
+            score: 0,
+            adjustedScore: 0
+        });
+        return;
+    }
+    
+    // 感情語を処理...
+});
+```
+
+**なぜ全トークンを処理するのか？**
+
+1. **Python VADER互換性**: オリジナルのPython実装は計算に全トークンを含める
+2. **正確なpos/neg/neu比率**: 比率は全トークンに基づいて計算される：
+   ```javascript
+   const total = posSum + Math.abs(negSum) + neuCount;  // 全トークン
+   const pos = Math.abs(posSum / total);
+   const neg = Math.abs(negSum / total);
+   const neu = Math.abs(neuCount / total);
+   ```
+
+3. **表示の最適化**: 内部では全トークンを処理するが、詳細分析では見やすさのため感情語のみを表示
+
+**処理例:**
+
+入力: "I love this product"
+
+内部処理（全4トークン）:
+```
+[
+  {token: "I", score: 0, type: "neutral"},
+  {token: "love", score: 3.2, type: "positive"},
+  {token: "this", score: 0, type: "neutral"},
+  {token: "product", score: 0, type: "neutral"}
+]
+```
+
+表示（感情語のみ）:
+```
+love: +3.2 (positive)
+```
+```
+
+### 6.5 絵文字処理（オプション）
 
 ```javascript
 if (token.isEmoji && emojiLexicon[token.text]) {

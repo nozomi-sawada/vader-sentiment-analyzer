@@ -560,6 +560,11 @@
                 const lower = token.lower;
                 const original = token.text;
                 
+                // 感嘆符は単独トークンとしてスキップ（感情語に付属する感嘆符として処理済み）
+                if (/^!+$/.test(original)) {
+                    return;
+                }
+                
                 if (NEGATION_WORDS.has(lower)) {
                     sentiments.push({
                         token: original,
@@ -630,15 +635,13 @@
 
                 let lexiconEntry = vaderLexicon[lower] || vaderLexicon[original];
                 if (!lexiconEntry) {
-                    if (/^!+$/.test(original)) {
-                        return;
-                    }
-                    
+                    // レキシコンにない単語も中立として追加（Python VADER互換）
                     sentiments.push({
                         token: original,
                         type: 'neutral',
                         score: 0,
-                        adjustedScore: 0
+                        adjustedScore: 0,
+                        adjustments: []
                     });
                     return;
                 }
@@ -745,7 +748,7 @@
                 if (s.adjustedScore > 0) {
                     posSum += s.adjustedScore;
                 } else if (s.adjustedScore < 0) {
-                    negSum += Math.abs(s.adjustedScore);
+                    negSum += s.adjustedScore;  // ← 負の値のまま（Mathj.absを削除）
                 } else {
                     neuCount++;
                 }
@@ -756,11 +759,11 @@
             
             // Normalize compound score to [-1, 1] range
             compound = Math.max(-1, Math.min(1, compound));
-
-            const total = posSum + negSum + neuCount;
-            const pos = total > 0 ? posSum / total : 0;
-            const neg = total > 0 ? negSum / total : 0;
-            const neu = total > 0 ? neuCount / total : 0;
+                        
+            const total = posSum + Math.abs(negSum) + neuCount;
+            const pos = total > 0 ? Math.abs(posSum / total) : 0;
+            const neg = total > 0 ? Math.abs(negSum / total) : 0;
+            const neu = total > 0 ? Math.abs(neuCount / total) : 0;
 
             return { compound, pos, neg, neu, sentiments };
         }
@@ -826,6 +829,7 @@
             }).join('');
 
             const tokenTable = document.getElementById('token-table');
+            // 表示は感情語のみ（見やすさのため）、内部では全単語を処理
             tokenTable.innerHTML = result.sentiments.filter(s => s.score !== 0 || s.type === 'negation' || s.type === 'exclamation').map(s => {
                 return '<tr class="hover:bg-gray-50">' +
                     '<td class="border p-2 font-semibold">' + s.token + '</td>' +

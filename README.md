@@ -153,6 +153,7 @@ This tool faithfully reproduces the original VADER implementation:
 - ✅ Normalization (α=15)
 - ✅ Emoji support via text conversion (optional)
 - ✅ Sentence splitting with abbreviation protection (Mr., Dr., etc.)
+- ✅ All tokens processing - Processes all tokens internally for accurate compound score (Python VADER compatible)
 
 ## Examples
 
@@ -465,6 +466,7 @@ VADERは以下の手順で感情スコアを計算します：
 - ✅ 正規化（α=15）
 - ✅ 絵文字対応（テキスト変換経由、オプション）
 - ✅ 文分割（略語保護：Mr., Dr. など）
+- ✅ 全トークン処理 - 正確なCompound Score計算のため内部で全トークンを処理（Python VADER互換）
 
 ## 使用例
 
