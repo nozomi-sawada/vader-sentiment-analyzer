@@ -229,6 +229,26 @@ Researchers should be aware of the following limitations:
 - ✅ Safari 14+
 - ⚠️ Internet Explorer (Not supported)
 
+## Security Features
+
+This tool implements multiple security measures to ensure safe operation in browser environments:
+
+### XSS (Cross-Site Scripting) Protection
+
+- **Safe DOM Construction** - All dynamic content is rendered using `textContent` and `createElement` instead of `innerHTML`
+- **No HTML Injection** - User input and lexicon data are automatically escaped
+- **Validated Rendering** - All 8 rendering locations use XSS-safe methods
+
+### Input Validation
+
+- **File Size Limit** - Maximum 10MB per file to prevent DoS attacks
+- **Extension Check** - Only `.txt` files are accepted
+- **Content Validation** - Lexicon format verification
+
+### Content Security Policy (CSP)
+
+The tool uses CSP headers to restrict script execution, styles, network connections, and frame embedding.
+
 ## Academic Usage Guide
 
 ### Citation Examples in Papers
@@ -541,6 +561,26 @@ Hutto & Gilbert (2014) は以下のデータセットでVADERの性能を検証�
 - ✅ Firefox 88+
 - ✅ Safari 14+
 - ⚠️ Internet Explorer（非対応）
+
+## セキュリティ機能
+
+本ツールは、ブラウザ環境での安全な動作を保証するため、複数のセキュリティ対策を実装しています：
+
+### XSS（クロスサイトスクリプティング）保護
+
+- **安全なDOM構築** - すべての動的コンテンツは`innerHTML`の代わりに`textContent`と`createElement`を使用
+- **HTMLインジェクション防止** - ユーザー入力とレキシコンデータは自動的にエスケープ
+- **検証済みレンダリング** - 8か所のレンダリング箇所すべてでXSS安全な手法を使用
+
+### 入力検証
+
+- **ファイルサイズ制限** - DoS攻撃防止のため、ファイルあたり最大10MB
+- **拡張子チェック** - `.txt`ファイルのみ受け付け
+- **コンテンツ検証** - レキシコン形式の検証
+
+### コンテンツセキュリティポリシー（CSP）
+
+ツールはCSPヘッダーを使用して、スクリプト実行、スタイル、ネットワーク接続、フレーム埋め込みを制限しています。
 
 ## 学術利用ガイド
 
