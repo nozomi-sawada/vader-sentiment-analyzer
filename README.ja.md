@@ -311,9 +311,9 @@ Hutto & Gilbert (2014) は以下のデータセットでVADERの性能を検証�
 
 詳細なドキュメントは `docs/` フォルダにあります：
 
-- **[ALGORITHM.md](docs/ALGORITHM.md)** - アルゴリズムの詳細実装
-- **[LEXICON.md](docs/LEXICON.md)** - レキシコンの構造とアノテーション方法論
-- **[CITATION.md](docs/CITATION.md)** - 学術利用のための詳細な引用ガイド
+- **[ALGORITHM.ja.md](docs/ALGORITHM.ja.md)** - アルゴリズムの詳細実装
+- **[LEXICON.ja.md](docs/LEXICON.ja.md)** - レキシコンの構造とアノテーション方法論
+- **[CITATION.ja.md](docs/CITATION.ja.md)** - 学術利用のための詳細な引用ガイド
 
 ## ライセンス
 
