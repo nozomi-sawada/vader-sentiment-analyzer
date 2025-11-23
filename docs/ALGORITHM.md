@@ -1,6 +1,6 @@
 # VADER Algorithm Details
 
-**English** | [日本語](#日本語版)
+**English** | [日本語](ALGORITHM.ja.md)
 
 This document explains the implementation details and mathematical definitions of the VADER algorithm.
 

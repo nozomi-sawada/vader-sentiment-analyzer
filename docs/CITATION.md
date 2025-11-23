@@ -1,6 +1,6 @@
 # Citation Guide
 
-**English** | [日本語](#日本語版)
+**English** | [日本語](CITATION.ja.md)
 
 This document explains how to cite this tool when using it in academic research.
 

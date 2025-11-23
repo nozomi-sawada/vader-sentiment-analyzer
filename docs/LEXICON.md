@@ -1,6 +1,6 @@
 # VADER Lexicon Details
 
-**English** | [日本語](#日本語版)
+**English** | [日本語](LEXICON.ja.md)
 
 ---
 
