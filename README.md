@@ -1,6 +1,6 @@
 # VADER-based Sentiment Analysis Tool
 
-[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![VADER](https://img.shields.io/badge/VADER-Hutto%20%26%20Gilbert%202014-green)](https://github.com/cjhutto/vaderSentiment)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
@@ -318,7 +318,7 @@ For more detailed information, see the `docs/` folder:
 
 ## License
 
-This tool is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/). You are free to share and adapt the material with attribution, for non-commercial purposes only.
+This tool is released under the MIT License.
 
 **Important:** VADER lexicon files are distributed in the [original repository](https://github.com/cjhutto/vaderSentiment). This tool does not include the lexicon files. Users must download them separately to comply with licensing requirements.
 
