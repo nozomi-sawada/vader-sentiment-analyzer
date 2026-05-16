@@ -1,6 +1,6 @@
 # VADER感情分析ツール
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![VADER](https://img.shields.io/badge/VADER-Hutto%20%26%20Gilbert%202014-green)](https://github.com/cjhutto/vaderSentiment)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
@@ -317,7 +317,7 @@ Hutto & Gilbert (2014) は以下のデータセットでVADERの性能を検証�
 
 ## ライセンス
 
-本ツールはMITライセンスの下で公開されています。
+本ツールは [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/) の下で公開されています。表示（クレジットの記載）を行うことで、非営利目的に限り、自由に共有・改変できます。
 
 **重要:** VADERレキシコンファイル自体は[元のリポジトリ](https://github.com/cjhutto/vaderSentiment)で配布されています。本ツールはレキシコンファイルを含みません。ユーザーは元のリポジトリからレキシコンファイルをダウンロードする必要があります。
 
