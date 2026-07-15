@@ -11,18 +11,18 @@
 
 ## Abstract
 
-This tool provides a faithful browser-based implementation of the VADER (Valence Aware Dictionary and sEntiment Reasoner) algorithm developed by Hutto & Gilbert (2014). It employs a lexicon and rule-based approach specifically designed for sentiment analysis of social media text, implementing all core VADER features including negation handling, booster words, and context-dependent weighting. Developed as a practical tool for researchers and educators to understand and apply sentiment analysis methodologies.
+This tool is a browser-based implementation of the VADER (Valence Aware Dictionary and sEntiment Reasoner) sentiment analysis algorithm (Hutto & Gilbert, 2014). The analysis engine is a port of the reference Python implementation (vaderSentiment 3.3.2), and automated tests check that its output matches the reference. It is intended for researchers and educators who want to understand and apply lexicon- and rule-based sentiment analysis.
 
 ## Key Features
 
-- **🌐 Browser-based** - No installation, no server, runs entirely in your browser
-- **📱 Offline capable** - Works offline after loading lexicon files
-- **🎯 Rule-based & transparent** - All decisions are interpretable, no black-box ML
-- **😊 Emoji support** - Analyzes emojis by converting them to text descriptions (optional)
-- **📊 Detailed visualization** - Shows score adjustment process for each word
-- **📄 Sentence-level analysis** - Supports sentence-by-sentence analysis as recommended by VADER paper
-- **🔍 Lexicon explorer** - Search and browse ~7,500 sentiment words with statistics
-- **📈 Statistical insights** - Distribution charts, top positive/negative words, standard deviation analysis
+- **Browser-based** - No installation or server required
+- **Offline capable** - Works offline after loading lexicon files
+- **Rule-based** - Lexicon and rule-based scoring; every adjustment is shown to the user
+- **Emoji support** - Analyzes emojis by converting them to text descriptions (optional)
+- **Per-word detail** - Shows the score adjustment process for each word
+- **Sentence-level analysis** - Sentence-by-sentence analysis, as recommended by the VADER paper
+- **Lexicon explorer** - Search and browse the ~7,500-word lexicon
+- **Lexicon statistics** - Distribution chart, top positive/negative words, standard deviation
 
 ## Quick Start
 
@@ -38,7 +38,7 @@ https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/vader_lexic
 https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/emoji_utf8_lexicon.txt
 ```
 
-💡 **Tip:** Click "Raw" button on GitHub, then right-click and "Save As"
+Tip: Click the "Raw" button on GitHub, then right-click and "Save As"
 
 ### 2. Run the Tool
 
@@ -49,7 +49,7 @@ https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/emoji_utf8_
 ### 3. Choose Analysis Mode
 
 - **Normal mode** - Analyzes entire text as one unit
-- **Sentence mode** ☑️ - Splits text and analyzes each sentence (recommended by VADER paper)
+- **Sentence mode** - Splits text and analyzes each sentence (recommended by the VADER paper)
 
 ## About VADER Algorithm
 
@@ -150,17 +150,17 @@ implementation ([vaderSentiment 3.3.2](https://github.com/cjhutto/vaderSentiment
 and its output is verified against the reference by an automated golden test
 suite (see [Testing](#testing)):
 
-- ✅ Lexicon-based scoring using original VADER lexicon
-- ✅ Tokenization identical to the reference (`SentiText`): whitespace split with punctuation stripping that preserves emoticons such as `:)`, `:D`, `<3`
-- ✅ Negation handling (checks 3 tokens back), including contractions ("n't"), "never so/this" emphasis, "without doubt", "least", and "no" special cases
-- ✅ Booster words with distance decay (immediate → ×1.00, 2 back → ×0.95, 3 back → ×0.90), including ALL CAPS boosters
-- ✅ ALL CAPS detection and emphasis (±0.733)
-- ✅ Punctuation emphasis at text level: exclamation marks (up to 4, +0.292 each) and question marks (2–3: +0.18 each, 4+: +0.96)
-- ✅ "but" clause contextual adjustment (before ×0.5, after ×1.5)
-- ✅ Special-case idioms ("bad ass", "the shit", "to die for", "yeah right", ...) and multiword dampeners ("kind of", "sort of")
-- ✅ Compound normalization (α=15) and pos/neu/neg proportions computed exactly as in the reference (±1 compensation per token)
-- ✅ Emoji support via inline text-description conversion, identical to the reference (optional)
-- ✅ Sentence splitting with abbreviation protection (Mr., Dr., etc.) — an application feature on top of VADER
+- Lexicon-based scoring using original VADER lexicon
+- Tokenization identical to the reference (`SentiText`): whitespace split with punctuation stripping that preserves emoticons such as `:)`, `:D`, `<3`
+- Negation handling (checks 3 tokens back), including contractions ("n't"), "never so/this" emphasis, "without doubt", "least", and "no" special cases
+- Booster words with distance decay (immediate → ×1.00, 2 back → ×0.95, 3 back → ×0.90), including ALL CAPS boosters
+- ALL CAPS detection and emphasis (±0.733)
+- Punctuation emphasis at text level: exclamation marks (up to 4, +0.292 each) and question marks (2–3: +0.18 each, 4+: +0.96)
+- "but" clause contextual adjustment (before ×0.5, after ×1.5)
+- Special-case idioms ("bad ass", "the shit", "to die for", "yeah right", ...) and multiword dampeners ("kind of", "sort of")
+- Compound normalization (α=15) and pos/neu/neg proportions computed exactly as in the reference (±1 compensation per token)
+- Emoji support via inline text-description conversion, identical to the reference (optional)
+- Sentence splitting with abbreviation protection (Mr., Dr., etc.) — an application feature on top of VADER
 
 ### Project Structure
 
@@ -245,7 +245,7 @@ Hutto & Gilbert (2014) validated VADER's performance on the following datasets:
 
 ### Validity of This Implementation
 
-This tool aims to faithfully reproduce the behavior of the original VADER implementation (Python version). Key implementation aspects:
+The analysis engine is a port of the original VADER implementation (Python version):
 
 1. **Core Algorithm** - Direct port of the reference implementation: grammatical and pragmatic rules, score calculation formulas, normalization parameters, and negation scope (3 tokens)
 2. **Lexicon Usage** - Uses original VADER lexicon with compatibility for lexicon format and preservation of standard deviation data
@@ -262,26 +262,24 @@ Researchers should be aware of the following limitations:
 
 ## Browser Compatibility
 
-- ✅ Chrome / Edge 90+ (Recommended)
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ⚠️ Internet Explorer (Not supported)
+- Chrome / Edge 90+ (Recommended)
+- Firefox 88+
+- Safari 14+
+- Internet Explorer is not supported
 
 ## Security Features
 
-This tool implements multiple security measures to ensure safe operation in browser environments:
+The tool takes the following precautions for running in the browser:
 
 ### XSS (Cross-Site Scripting) Protection
 
-- **Safe DOM Construction** - All dynamic content is rendered using `textContent` and `createElement` instead of `innerHTML`
-- **No HTML Injection** - User input and lexicon data are automatically escaped
-- **Validated Rendering** - All 8 rendering locations use XSS-safe methods
+- All dynamic content is rendered with `textContent` and `createElement` instead of `innerHTML`, so user input and lexicon data are escaped
 
 ### Input Validation
 
-- **File Size Limit** - Maximum 10MB per file to prevent DoS attacks
-- **Extension Check** - Only `.txt` files are accepted
-- **Content Validation** - Lexicon format verification
+- **File size limit** - Maximum 10MB per file, to keep the browser responsive
+- **Extension check** - Only `.txt` files are accepted
+- **Content validation** - Lexicon format is checked; files with no valid entries are rejected
 
 ### Content Security Policy (CSP)
 
