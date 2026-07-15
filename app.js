@@ -78,6 +78,9 @@
             lexiconEmpty: 'レキシコンとして読み込める行がありませんでした',
             wordsLoaded: n => n + ' 単語を読み込みました',
             emojisLoaded: n => n + ' 個の絵文字マッピングを読み込みました',
+            bundledWords: n => n + ' 単語を読み込みました（同梱ファイル）',
+            bundledEmojis: n => n + ' 個の絵文字マッピングを読み込みました（同梱ファイル）',
+            bundledLoaded: '同梱のレキシコンを自動で読み込みました。すぐに分析できます',
             loadFailed: 'ファイルの読み込みに失敗しました',
             emojiLoadFailed: '絵文字ファイルの読み込みに失敗しました',
             enterText: '分析するテキストを入力してください',
@@ -111,6 +114,9 @@
             lexiconEmpty: 'No valid lexicon entries found',
             wordsLoaded: n => n + ' words loaded',
             emojisLoaded: n => n + ' emoji mappings loaded',
+            bundledWords: n => n + ' words loaded (bundled file)',
+            bundledEmojis: n => n + ' emoji mappings loaded (bundled file)',
+            bundledLoaded: 'Bundled lexicons loaded automatically — ready to analyze',
             loadFailed: 'Failed to load file',
             emojiLoadFailed: 'Failed to load emoji file',
             enterText: 'Please enter text to analyze',
@@ -167,12 +173,7 @@
         document.getElementById('text-input').placeholder = t('inputPlaceholder');
 
         // Re-render language-dependent dynamic content
-        if (state.lexiconCount !== null) {
-            document.getElementById('lexicon-loaded').textContent = '✓ ' + t('wordsLoaded', state.lexiconCount.toLocaleString());
-        }
-        if (state.emojiCount !== null) {
-            document.getElementById('emoji-loaded').textContent = '✓ ' + t('emojisLoaded', state.emojiCount.toLocaleString());
-        }
+        updateLoadedIndicators();
         if (state.lastResult !== null) {
             displayResults(state.lastResult);
         }
@@ -190,8 +191,61 @@
     const state = {
         lastResult: null,
         lexiconCount: null,
-        emojiCount: null
+        emojiCount: null,
+        lexiconBundled: false,
+        emojiBundled: false
     };
+
+    // Shows the "N words loaded" boxes (bundled or manual) in the current language
+    function updateLoadedIndicators() {
+        if (state.lexiconCount !== null) {
+            const box = document.getElementById('lexicon-loaded');
+            box.textContent = '✓ ' + t(state.lexiconBundled ? 'bundledWords' : 'wordsLoaded', state.lexiconCount.toLocaleString());
+            box.classList.remove('hidden');
+            document.querySelectorAll('.required-badge').forEach(b => b.classList.add('hidden'));
+        }
+        if (state.emojiCount !== null) {
+            const box = document.getElementById('emoji-loaded');
+            box.textContent = '✓ ' + t(state.emojiBundled ? 'bundledEmojis' : 'emojisLoaded', state.emojiCount.toLocaleString());
+            box.classList.remove('hidden');
+        }
+    }
+
+    // Load the lexicons bundled in third_party/ (works when served over HTTP,
+    // e.g. GitHub Pages; silently falls back to manual upload on file://).
+    async function autoLoadBundled() {
+        try {
+            const lexRes = await fetch('third_party/vaderSentiment/vader_lexicon.txt');
+            if (!lexRes.ok) throw new Error('HTTP ' + lexRes.status);
+            const result = VADER.parseLexicon(await lexRes.text());
+            if (result.stats.total === 0) throw new Error('empty lexicon');
+
+            vaderLexicon = result.lexicon;
+            lexiconStats = result.stats;
+            state.lexiconCount = result.stats.total;
+            state.lexiconBundled = true;
+
+            try {
+                const emoRes = await fetch('third_party/vaderSentiment/emoji_utf8_lexicon.txt');
+                if (emoRes.ok) {
+                    const er = VADER.parseEmojiLexicon(await emoRes.text());
+                    if (er.count > 0) {
+                        emojiLexicon = er.lexicon;
+                        state.emojiCount = er.count;
+                        state.emojiBundled = true;
+                    }
+                }
+            } catch (e) { /* emoji lexicon is optional */ }
+
+            updateLoadedIndicators();
+            displayStatistics();
+            showNotification(t('bundledLoaded'), 'success');
+        } catch (e) {
+            // No bundled files reachable (e.g. opened via file://): the manual
+            // upload flow below works exactly as before.
+            console.info('Bundled lexicon auto-load unavailable: ' + e.message);
+        }
+    }
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit
 
@@ -603,10 +657,9 @@
             vaderLexicon = result.lexicon;
             lexiconStats = result.stats;
             state.lexiconCount = result.stats.total;
+            state.lexiconBundled = false;
 
-            document.getElementById('lexicon-loaded').textContent = '✓ ' + t('wordsLoaded', result.stats.total.toLocaleString());
-            document.getElementById('lexicon-loaded').classList.remove('hidden');
-
+            updateLoadedIndicators();
             displayStatistics();
             showNotification(t('wordsLoaded', result.stats.total.toLocaleString()), 'success');
         } catch (error) {
@@ -626,10 +679,9 @@
 
             emojiLexicon = result.lexicon;
             state.emojiCount = result.count;
+            state.emojiBundled = false;
 
-            document.getElementById('emoji-loaded').textContent = '✓ ' + t('emojisLoaded', result.count.toLocaleString());
-            document.getElementById('emoji-loaded').classList.remove('hidden');
-
+            updateLoadedIndicators();
             showNotification(t('emojisLoaded', result.count.toLocaleString()), 'success');
         } catch (error) {
             showNotification(t('emojiLoadFailed'), 'error');
@@ -744,6 +796,7 @@
 
     document.getElementById('search-input').addEventListener('input', debounce(renderSearch, 300));
 
-    // Apply saved language on startup
+    // Apply saved language on startup, then try the bundled lexicons
     applyLanguage(currentLang);
+    autoLoadBundled();
 })();

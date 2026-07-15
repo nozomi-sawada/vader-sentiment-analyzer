@@ -4,11 +4,10 @@
  * reference Python implementation (vaderSentiment 3.3.2) for every sentence
  * in test/sentences.json.
  *
- * Requires the lexicon fixtures (not committed to the repository):
- *     bash test/fetch-fixtures.sh
- *
- * Then run:
+ * Run with:
  *     node test/run-tests.js
+ *
+ * Uses the lexicon files bundled in third_party/vaderSentiment/.
  *
  * Tolerances: the golden file stores Python's values rounded to 4 (compound)
  * and 3 (pos/neu/neg) decimals, so we allow half of the last rounded digit
@@ -22,14 +21,9 @@ const path = require('path');
 const VADER = require('../vader.js');
 
 const HERE = __dirname;
-const FIXTURES = path.join(HERE, 'fixtures');
-const LEXICON_PATH = path.join(FIXTURES, 'vader_lexicon.txt');
-const EMOJI_PATH = path.join(FIXTURES, 'emoji_utf8_lexicon.txt');
-
-if (!fs.existsSync(LEXICON_PATH) || !fs.existsSync(EMOJI_PATH)) {
-    console.error('Missing lexicon fixtures. Run first:\n    bash test/fetch-fixtures.sh');
-    process.exit(2);
-}
+const BUNDLED = path.join(HERE, '..', 'third_party', 'vaderSentiment');
+const LEXICON_PATH = path.join(BUNDLED, 'vader_lexicon.txt');
+const EMOJI_PATH = path.join(BUNDLED, 'emoji_utf8_lexicon.txt');
 
 const golden = JSON.parse(fs.readFileSync(path.join(HERE, 'golden.json'), 'utf-8'));
 const { lexicon } = VADER.parseLexicon(fs.readFileSync(LEXICON_PATH, 'utf-8'));

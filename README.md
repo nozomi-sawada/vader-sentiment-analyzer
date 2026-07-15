@@ -18,7 +18,8 @@ This tool is a browser-based implementation of the VADER (Valence Aware Dictiona
 ## Key Features
 
 - **Browser-based** - No installation or server required
-- **Offline capable** - No external dependencies; works offline after loading lexicon files
+- **Ready to use** - The VADER lexicon is bundled (MIT license) and loads automatically
+- **Offline capable** - No external dependencies
 - **Japanese / English UI** - Switch the interface language with one click
 - **Rule-based** - Lexicon and rule-based scoring; every adjustment is shown to the user
 - **Emoji support** - Analyzes emojis by converting them to text descriptions (optional)
@@ -29,28 +30,22 @@ This tool is a browser-based implementation of the VADER (Valence Aware Dictiona
 
 ## Quick Start
 
-### 1. Download Required Files
+### Run the Tool
 
-**Required:** VADER Lexicon (~7,500 sentiment words)
-```
-https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/vader_lexicon.txt
-```
+1. Download this repository ("Code" → "Download ZIP", then extract) or clone it, and serve/open `index.html`
+2. The bundled VADER lexicon and emoji lexicon load automatically
+3. Enter text and click "Analyze"
 
-**Optional:** Emoji Lexicon (~3,000 emoji mappings)
-```
-https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/emoji_utf8_lexicon.txt
-```
+> [!NOTE]
+> Automatic loading requires the page to be served over HTTP (e.g. GitHub Pages or a local web server). If you open `index.html` directly from your file system, load the lexicon files manually via the buttons on the page — they are in `third_party/vaderSentiment/`.
 
-> [!TIP]
-> Click the "Raw" button on GitHub, then right-click and "Save As".
+### Using a Different Lexicon
 
-### 2. Run the Tool
+The file inputs on the page let you replace the bundled lexicons at any time,
+e.g. with a customized `vader_lexicon.txt`. The original files are distributed
+at https://github.com/cjhutto/vaderSentiment.
 
-1. Download this repository ("Code" → "Download ZIP", then extract) or clone it
-2. Open `index.html` in your browser
-3. Upload the lexicon file(s), enter text, and click "Analyze"
-
-### 3. Choose Analysis Mode
+### Choose Analysis Mode
 
 - **Normal mode** - Analyzes entire text as one unit
 - **Sentence mode** - Splits text and analyzes each sentence (recommended by the VADER paper)
@@ -175,6 +170,7 @@ vader.js            – the VADER algorithm (browser + Node.js)
 app.js              – UI layer (file loading, rendering, language toggle, events)
 tailwind.css        – pre-built stylesheet (regenerate with: npm run build:css)
 tailwind.input.css  – stylesheet source
+third_party/        – bundled VADER lexicon files (MIT, see LICENSE there)
 test/               – golden tests against the reference Python implementation
 ```
 
@@ -190,9 +186,10 @@ idioms, emoticons, emojis, edge cases) and asserts that `vader.js` reproduces
 them:
 
 ```bash
-bash test/fetch-fixtures.sh   # download lexicon files (not committed, see License)
 node test/run-tests.js        # compare vader.js against test/golden.json
 ```
+
+The tests use the lexicon files bundled in `third_party/vaderSentiment/`.
 
 To regenerate the golden data from the reference implementation:
 
@@ -368,7 +365,7 @@ For more detailed information, see the `docs/` folder:
 This tool is released under the MIT License.
 
 > [!IMPORTANT]
-> VADER lexicon files are distributed in the [original repository](https://github.com/cjhutto/vaderSentiment). This tool does not include the lexicon files. Users must download them separately to comply with licensing requirements.
+> The VADER lexicon files in `third_party/vaderSentiment/` are redistributed unmodified from the [original repository](https://github.com/cjhutto/vaderSentiment) under the MIT License (Copyright (c) 2016 C.J. Hutto); the license text and provenance are included in that directory. If you use the lexicons, cite Hutto & Gilbert (2014).
 
 ## Acknowledgments
 

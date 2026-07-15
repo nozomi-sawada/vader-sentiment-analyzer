@@ -18,7 +18,8 @@
 ## 主な特徴
 
 - **ブラウザベース** - インストールもサーバーも不要
-- **オフライン動作** - 外部依存なし。レキシコンファイル読み込み後はインターネット接続不要
+- **すぐに使える** - VADERレキシコンを同梱（MITライセンス）し、自動で読み込み
+- **オフライン動作** - 外部依存なし
 - **日本語 / 英語UI** - ワンクリックで表示言語を切り替え
 - **ルールベース** - 辞書・ルールベースのスコアリングで、適用された調整をすべて表示
 - **絵文字対応** - 絵文字を説明文に変換して分析（オプション）
@@ -29,28 +30,20 @@
 
 ## クイックスタート
 
-### 1. 必要なファイルのダウンロード
+### ツールの実行
 
-**必須:** VADERレキシコン（約7,500語の感情語彙）
-```
-https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/vader_lexicon.txt
-```
+1. このリポジトリをダウンロード（「Code」→「Download ZIP」を展開）またはクローンし、`index.html` を開く
+2. 同梱のVADERレキシコンと絵文字レキシコンが自動で読み込まれます
+3. テキストを入力して「分析する」をクリック
 
-**オプション:** 絵文字レキシコン（約3,000個の絵文字マッピング）
-```
-https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/emoji_utf8_lexicon.txt
-```
+> [!NOTE]
+> 自動読み込みはHTTP経由でページを開いた場合（GitHub Pagesやローカルサーバーなど）に動作します。`index.html` をファイルとして直接開いた場合は、画面のボタンからレキシコンファイル（`third_party/vaderSentiment/` にあります）を手動で読み込んでください。
 
-> [!TIP]
-> GitHubで「Raw」ボタンをクリック後、右クリックで「名前を付けて保存」。
+### 別のレキシコンを使う場合
 
-### 2. ツールの実行
+画面のファイル選択から、同梱のレキシコンをいつでも差し替えられます（カスタマイズした `vader_lexicon.txt` など）。オリジナルのファイルは https://github.com/cjhutto/vaderSentiment で配布されています。
 
-1. このリポジトリをダウンロード（「Code」→「Download ZIP」を展開）またはクローン
-2. `index.html` をブラウザで開く
-3. レキシコンファイルを読み込み、テキストを入力して「分析する」をクリック
-
-### 3. 分析モードの選択
+### 分析モードの選択
 
 - **通常モード** - テキスト全体を1つとして分析
 - **文分割モード** - 文ごとに分割して分析（VADER論文推奨）
@@ -172,6 +165,7 @@ vader.js            – VADERアルゴリズム本体（ブラウザ・Node.js�
 app.js              – UI層（ファイル読み込み、描画、言語切り替え、イベント処理）
 tailwind.css        – ビルド済みスタイルシート（再生成: npm run build:css）
 tailwind.input.css  – スタイルシートのソース
+third_party/        – 同梱のVADERレキシコンファイル（MITライセンス、同ディレクトリ参照）
 test/               – 本家Python実装とのゴールデンテスト
 ```
 
@@ -183,9 +177,10 @@ test/               – 本家Python実装とのゴールデンテスト
 ゴールデンテストは、約100の例文（否定、強調語、大文字、句読点、イディオム、エモーティコン、絵文字、エッジケース）について本家Python実装の正確なスコアを記録し、`vader.js` がそれを再現することを検証します：
 
 ```bash
-bash test/fetch-fixtures.sh   # レキシコンファイルをダウンロード（ライセンスの節を参照、リポジトリには含めない）
 node test/run-tests.js        # vader.js を test/golden.json と照合
 ```
+
+テストは `third_party/vaderSentiment/` の同梱レキシコンを使用します。
 
 本家実装からゴールデンデータを再生成する場合：
 
@@ -360,7 +355,7 @@ Hutto & Gilbert (2014) は以下のデータセットでVADERの性能を検証�
 本ツールはMITライセンスの下で公開されています。
 
 > [!IMPORTANT]
-> VADERレキシコンファイル自体は[元のリポジトリ](https://github.com/cjhutto/vaderSentiment)で配布されています。本ツールはレキシコンファイルを含みません。ユーザーは元のリポジトリからレキシコンファイルをダウンロードする必要があります。
+> `third_party/vaderSentiment/` のVADERレキシコンファイルは、[元のリポジトリ](https://github.com/cjhutto/vaderSentiment)からMITライセンス（Copyright (c) 2016 C.J. Hutto）に基づき無改変で再配布しているものです。ライセンス文と出典は同ディレクトリに同梱しています。レキシコンを利用する場合は Hutto & Gilbert (2014) を引用してください。
 
 ## 謝辞
 
