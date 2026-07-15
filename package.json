@@ -1,0 +1,14 @@
+{
+  "name": "vader-sentiment-analyzer",
+  "version": "1.0.0",
+  "description": "Browser-based implementation of the VADER sentiment analysis algorithm (Hutto & Gilbert, 2014)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nozomi-sawada/vader-sentiment-analyzer.git"
+  },
+  "scripts": {
+    "test": "node test/run-tests.js",
+    "fixtures": "bash test/fetch-fixtures.sh"
+  }
+}

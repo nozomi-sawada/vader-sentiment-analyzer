@@ -227,27 +227,27 @@ Where:
 
 ### 4.1 Negation
 
-**Rule**: For each sentiment word, if a negation word appears in the **preceding 3 tokens**, invert the score
+**Rule**: For each sentiment word, if a negation word appears among the **preceding 3 tokens** (that are not themselves lexicon words), multiply the score by N_SCALAR
 
 ```javascript
-// Negation word examples
-NEGATION_WORDS = {
-  "not", "no", "never", "don't", "doesn't", 
-  "didn't", "can't", "won't", "couldn't",
-  "isn't", "wasn't", "weren't", ...
+// Negation word list (NEGATE in the reference implementation)
+NEGATE = {
+  "not", "never", "neither", "nor", "none", "nope", "nothing", "nowhere",
+  "don't", "dont", "doesn't", "doesnt", "didn't", "didnt",
+  "can't", "cant", "cannot", "won't", "wont", "couldn't", "couldnt",
+  "isn't", "isnt", "wasn't", "wasnt", "weren't", "werent",
+  "without", "rarely", "seldom", "despite", "uh-uh", ...
 }
+// In addition, any token containing "n't" acts as a negation.
 ```
 
-**Application Method**:
+**Application Method** (port of the reference `_negation_check`):
 
 ```
-for each token i with V₀(wᵢ) ≠ 0:
-    for j from max(0, i-3) to i-1:
-        if tokens[j] in NEGATION_WORDS:
-            if j == i-3 and tokens[i-1] not in ["or", "nor"]:
-                continue  // Special rule
-            V₁(wᵢ) = V₀(wᵢ) × N_SCALAR
-            break
+for startI from 0 to 2:                       // distance 1, 2, 3
+    if i > startI and tokens[i-(startI+1)] not in LEXICON:
+        if tokens[i-(startI+1)] is a negation word:
+            V₁(wᵢ) = V(wᵢ) × N_SCALAR
 ```
 
 **Parameter**:
@@ -257,21 +257,23 @@ for each token i with V₀(wᵢ) ≠ 0:
 
 Experiments in the paper found that a somewhat weaker inversion is more appropriate for social media text than simple reversal (×-1.0).
 
+**Special cases** (all implemented, as in the reference):
+
+- `"never so <word>"` / `"never this <word>"` — treated as emphasis (×1.25), not negation
+- `"without doubt"` — not a negation
+- `"no"` — not in the NEGATE list; instead, when "no" directly precedes a lexicon word (distance 1–2, or distance 3 followed by "or"/"nor"), that word is multiplied by N_SCALAR, and a "no" followed by a lexicon word contributes 0 itself
+- `"least <word>"` — negates the following word (×N_SCALAR) unless preceded by "at" or "very"
+
 **Example**:
 
 ```
-"This is not very good or nice"
-Position: 0   1   2    3    4    5  6
+"This is not very good"
+Position: 0   1   2   3    4
 
 "good" (position 4):
-  Preceding 3 tokens: positions 1,2,3 ("is", "not", "very")
-  → "not" at position 2 → apply negation
-  → V₁ = 1.9 × -0.74 = -1.406
-
-"nice" (position 6):
-  Preceding 3 tokens: positions 3,4,5 ("very", "good", "or")
-  → No negation word → no negation applied
-  → V₁ = 1.8 (unchanged)
+  distance 1: "very" → booster (+0.293)
+  distance 2: "not"  → negation
+  → V₁ = (1.9 + 0.293) × -0.74 = -1.623
 ```
 
 ### 4.2 Boosters (Intensifiers)
@@ -305,30 +307,36 @@ for startI from 0 to 2:
             scalar = BOOSTER_DICT[prevToken]
             if V(wᵢ) < 0:
                 scalar *= -1  // Invert for negative words
+            if prevToken is ALL CAPS and text has cap differential:
+                scalar += C_INCR (sign-matched)
             
             // Distance decay
             if startI == 1:
-                scalar *= 0.95  // Distance 2: 5% decay
+                scalar *= 0.95  // 2 tokens back: 5% decay
             if startI == 2:
-                scalar *= 0.90  // Distance 3: 10% decay
+                scalar *= 0.90  // 3 tokens back: 10% decay
             
             V₂(wᵢ) = V₁(wᵢ) + scalar
 ```
 
+Multiword dampeners such as "kind of" / "sort of" are also detected as bigrams
+in the preceding tokens (reference `_special_idioms_check`).
+
 **Theoretical Basis for Distance Decay**:
 
-Closer boosters have stronger influence (linguistic proximity principle)
+Closer boosters have stronger influence (linguistic proximity principle). The
+booster immediately before the word applies at full strength (×1.00).
 
 **Example**:
 
 ```
 "This is very very good"
          ↑    ↑    ↑
-    Distance2 Distance1 Sentiment word
+   2 back   1 back  Sentiment word
 
-Distance 1 "very": scalar = +0.293 × 0.95 = +0.278
-Distance 2 "very": scalar = +0.293 × 0.90 = +0.264
-Total: V₂ = 1.9 + 0.278 + 0.264 = 2.442
+1 back "very":  scalar = +0.293 × 1.00 = +0.293
+2 back "very":  scalar = +0.293 × 0.95 = +0.278
+Total: V₂ = 1.9 + 0.293 + 0.278 = 2.471
 ```
 
 ### 4.3 ALL CAPS Emphasis
@@ -372,31 +380,31 @@ On social media, specific words are capitalized for emphasis. When entire text i
 → V₃ = 2.5 (unchanged)
 ```
 
-### 4.4 Exclamation Marks
+### 4.4 Punctuation Emphasis (Exclamation and Question Marks)
 
-**Rule**: Exclamation marks immediately after a sentiment word (maximum 4) provide emphasis
+**Rule**: Exclamation and question marks anywhere in the text amplify the
+**summed** sentiment (not individual words). The amplifier is added to the
+total valence sum before normalization, in the direction of the sum's sign.
 
 ```javascript
-let exclamationCount = 0;
-if (i + 1 < tokens.length) {
-    const nextToken = tokens[i + 1];
-    if (/^!+$/.test(nextToken.text)) {
-        exclamationCount = Math.min(nextToken.text.length, 4);
-    }
+// counted over the whole text, port of _punctuation_emphasis()
+epAmplifier = min(count("!"), 4) × 0.292;
+
+qmCount = count("?");
+qmAmplifier = 0;
+if (qmCount > 1) {
+    qmAmplifier = qmCount <= 3 ? qmCount × 0.18 : 0.96;
 }
 
-const boost = exclamationCount × 0.292;
+punctEmphasis = epAmplifier + qmAmplifier;
 
-if (V(wᵢ) > 0) {
-    V₄(wᵢ) = V₃(wᵢ) + boost;
-} else {
-    V₄(wᵢ) = V₃(wᵢ) - boost;
-}
+if (sum > 0)      sum += punctEmphasis;
+else if (sum < 0) sum -= punctEmphasis;
 ```
 
 **Parameters**:
-- `E_INCR = 0.292` (per exclamation mark)
-- Maximum 4 (no additional effect beyond 4)
+- Exclamation: `+0.292` each, maximum 4 (no additional effect beyond 4)
+- Question marks: 2–3 marks: `+0.18` each; 4 or more: `+0.96` total
 
 **Why limit to 4?**
 
@@ -405,12 +413,15 @@ Paper experiments found that 5 or more exclamation marks provide no additional e
 **Example**:
 
 ```
-"This is amazing!"      → boost = 1 × 0.292 = +0.292
-"This is amazing!!"     → boost = 2 × 0.292 = +0.584
-"This is amazing!!!"    → boost = 3 × 0.292 = +0.876
-"This is amazing!!!!"   → boost = 4 × 0.292 = +1.168
-"This is amazing!!!!!"  → boost = 4 × 0.292 = +1.168 (ceiling)
+"This is amazing!"      → punctEmphasis = 1 × 0.292 = +0.292
+"This is amazing!!!"    → punctEmphasis = 3 × 0.292 = +0.876
+"This is amazing!!!!!"  → punctEmphasis = 4 × 0.292 = +1.168 (ceiling)
+"Really bad?? Really??" → punctEmphasis = 0.96 (4 question marks)
+"Seriously???"          → punctEmphasis = 3 × 0.18 = +0.54
 ```
+
+The same amplifier is also distributed to the larger of the positive/negative
+sums when computing the pos/neu/neg proportions (see 5.3).
 
 ### 4.5 "but" Context Adjustment
 
@@ -516,27 +527,31 @@ Square root prevents extremely high/low scores from dominating excessively.
 Calculate proportion of each category:
 
 ```javascript
+// port of _sift_sentiment_scores(): each positive token adds (score + 1),
+// each negative token adds (score - 1). The ±1 compensates for neutral
+// tokens, which each count as 1.
 let posSum = 0, negSum = 0, neuCount = 0;
 
-sentiments.forEach(s => {
-    if (s.adjustedScore > 0) {
-        posSum += s.adjustedScore;
-    } else if (s.adjustedScore < 0) {
-        negSum += Math.abs(s.adjustedScore);
-    } else {
-        neuCount++;
-    }
+valences.forEach(v => {
+    if (v > 0) posSum += v + 1;
+    if (v < 0) negSum += v - 1;
+    if (v === 0) neuCount++;
 });
 
-const total = posSum + negSum + neuCount;
-const pos = total > 0 ? posSum / total : 0;
-const neg = total > 0 ? negSum / total : 0;
-const neu = total > 0 ? neuCount / total : 0;
+// punctuation emphasis is added to the dominant side
+if (posSum > Math.abs(negSum))      posSum += punctEmphasis;
+else if (posSum < Math.abs(negSum)) negSum -= punctEmphasis;
+
+const total = posSum + Math.abs(negSum) + neuCount;
+const pos = Math.abs(posSum / total);
+const neg = Math.abs(negSum / total);
+const neu = Math.abs(neuCount / total);
 ```
 
 **Properties**:
 - `pos + neg + neu ≈ 1.0`
 - These represent **proportions** of sentiment words (independent from Compound)
+- The `±1` per token matches the reference implementation exactly; without it the ratios would deviate from Python VADER
 
 **Compound vs Pos/Neg/Neu**:
 
@@ -553,31 +568,29 @@ Pos: 0.45, Neg: 0.40, Neu: 0.15 (mixed positive and negative)
 
 ### 6.1 Tokenization
 
+Tokenization is identical to the reference implementation's `SentiText`:
+
 ```javascript
-function tokenize(text) {
-    const emojiRegex = /[\u{1F300}-\u{1F9FF}...]/u;
-    const regex = /(!+|\?+|[:()\[\]{}<>*\-_|\\\/]+|[\w']+|[emoji])/gu;
-    
-    let tokens = [];
-    let match;
-    
-    while ((match = regex.exec(text)) !== null) {
-        tokens.push({
-            text: match[0],
-            index: match.index,
-            lower: match[0].toLowerCase(),
-            isEmoji: emojiRegex.test(match[0])
-        });
-    }
-    
-    return tokens;
+// 1. split on whitespace
+// 2. strip leading/trailing punctuation from each chunk
+// 3. if the stripped result has 2 or fewer characters, keep the original
+//    chunk — it was likely an emoticon (":)" stripped would be "")
+function stripPuncIfWord(token) {
+    const stripped = stripPunctuation(token); // Python str.strip(string.punctuation)
+    if (stripped.length <= 2) return token;
+    return stripped;
+}
+
+function wordsAndEmoticons(text) {
+    return text.trim().split(/\s+/).map(stripPuncIfWord);
 }
 ```
 
 **Tokenization Features**:
-- Keeps exclamation/question marks as independent tokens
-- Recognizes emojis individually
-- Includes symbols in processing
+- Keeps contractions ("isn't") and most emoticons (":)", ":D", "<3") intact
+- Trailing punctuation is removed from words ("good!" → "good"), so exclamation
+  and question marks are handled at text level (see 4.4), not as tokens
+- Emojis are converted to their textual descriptions *before* tokenization (see 6.5)
 
 ### 6.2 ALL CAPS Detection
 
@@ -598,24 +611,28 @@ function allCapDifferential(tokens) {
 
 ### 6.3 Importance of Processing Order
 
-Rule application in VADER has **important ordering**:
+Rule application in VADER has **important ordering** (identical to the reference):
 
 ```
-1. Tokenization
-2. Locate "but" position
+1. Convert emojis to text descriptions
+2. Tokenization (whitespace split + punctuation strip)
 3. For each token:
-   a. Get lexicon score (V₀)
-   b. Check preceding 3 tokens for boosters (distance decay) → V₂
-   c. Check ALL CAPS → V₃
-   d. Check next token for exclamation marks → V₄
-   e. Apply "but" adjustment → V₅
-   f. Check preceding 3 tokens for negation → V_final
-4. Calculate Compound Score
+   a. Booster words and "kind of" themselves score 0 → next token
+   b. Get lexicon score (V₀)
+   c. "no" special handling
+   d. ALL CAPS emphasis → V₁
+   e. For each of the preceding 3 tokens (near to far):
+      booster scalar (distance decay) → negation check → idiom check → V₂
+   f. "least" check → V₃
+4. Apply "but" adjustment to the whole token list (before ×0.5 / after ×1.5)
+5. Sum all token scores, add punctuation emphasis, normalize → Compound Score
 ```
 
 **Why this order?**
 
-Negation is applied last so it affects scores already adjusted by other rules.
+Multiplicative rules (negation, "but") are applied after additive ones
+(ALL CAPS, boosters) so they scale the already-adjusted score, matching the
+reference implementation.
 
 ### 6.4 Token Processing Strategy
 
@@ -624,41 +641,19 @@ Negation is applied last so it affects scores already adjusted by other rules.
 The implementation processes **all tokens** in the input text, not just sentiment-bearing words:
 
 ```javascript
-// Process ALL tokens for Python VADER compatibility
-tokens.forEach((token, i) => {
-    const lower = token.lower;
-    const original = token.text;
-    
-    // Check lexicon
-    let lexiconEntry = vaderLexicon[lower] || vaderLexicon[original];
-    
-    if (!lexiconEntry) {
-        // Non-sentiment words are also added with score 0
-        sentiments.push({
-            token: original,
-            type: 'neutral',
-            score: 0,
-            adjustedScore: 0
-        });
-        return;
-    }
-    
-    // Process sentiment words...
-});
+// Process ALL tokens for Python VADER compatibility (see vader.js analyze())
+for (let i = 0; i < wordsAndEmoticons.length; i++) {
+    // booster words and "kind of" themselves score 0
+    // every other token gets its lexicon score (or 0) adjusted by the rules
+    valences.push(valence);
+}
 ```
 
 **Why Process All Tokens?**
 
 1. **Python VADER Compatibility**: The original Python implementation includes all tokens in calculations
-2. **Accurate pos/neg/neu Ratios**: The proportions are calculated based on all tokens:
-   ```javascript
-   const total = posSum + Math.abs(negSum) + neuCount;  // All tokens
-   const pos = Math.abs(posSum / total);
-   const neg = Math.abs(negSum / total);
-   const neu = Math.abs(neuCount / total);
-   ```
-
-3. **Display Optimization**: While all tokens are processed internally, only sentiment-bearing words are shown in the detailed analysis for clarity
+2. **Accurate pos/neg/neu Ratios**: The proportions are calculated over all tokens (neutral tokens each count as 1 — see 5.3)
+3. **Display Optimization**: While all tokens are processed internally, only tokens with a score or an applied rule are shown in the detailed analysis table for clarity
 
 **Processing Example:**
 
@@ -678,27 +673,25 @@ Display (only sentiment words):
 ```
 love: +3.2 (positive)
 ```
-```
 
 ### 6.5 Emoji Processing (Optional)
 
+Identical to the reference implementation: each emoji character in the input
+text is replaced *inline* with its textual description **before** tokenization.
+The description words then participate in the analysis as ordinary tokens
+(including negation and booster interactions).
+
 ```javascript
-if (token.isEmoji && emojiLexicon[token.text]) {
-    const description = emojiLexicon[token.text];
-    // Example: 😊 → "smiling face"
-    
-    // Look up each word in description using VADER lexicon
-    const words = description.split(/\s+/);
-    let totalScore = 0;
-    
-    words.forEach(word => {
-        if (vaderLexicon[word]) {
-            totalScore += vaderLexicon[word].score;
-        }
-    });
-    
-    // Use total score as emoji's score
+// port of the emoji preprocessing in polarity_scores()
+for (const ch of text) {           // iterate code points
+    if (ch in emojiLexicon) {
+        // e.g. 😊 → "smiling face with smiling eyes"
+        output += (needsSpace ? ' ' : '') + emojiLexicon[ch];
+    } else {
+        output += ch;
+    }
 }
+// analysis then runs on the emoji-free text
 ```
 
 ---
@@ -708,17 +701,18 @@ if (token.isEmoji && emojiLexicon[token.text]) {
 | Parameter | Value | Purpose |
 |-----------|-------|---------|
 | N_SCALAR | -0.74 | Negation intensity |
-| B_INCR | ±0.293 | Booster increment/decrement |
+| B_INCR / B_DECR | ±0.293 | Booster increment/decrement |
 | C_INCR | 0.733 | ALL CAPS emphasis |
-| E_INCR | 0.292 | Exclamation emphasis |
+| Exclamation emphasis | 0.292 each (max 4) | Text-level amplifier |
+| Question mark emphasis | 2–3: 0.18 each; 4+: 0.96 | Text-level amplifier |
 | α | 15 | Normalization smoothing |
 | Negation range | 3 tokens | Preceding check range |
 | Booster range | 3 tokens | Preceding check range |
-| Distance 1 decay | 0.95 | Booster distance decay |
-| Distance 2 decay | 0.90 | Booster distance decay |
+| 2 tokens back decay | ×0.95 | Booster distance decay |
+| 3 tokens back decay | ×0.90 | Booster distance decay |
+| "never so/this" | ×1.25 | Emphasis special case |
 | Before "but" | ×0.5 | Score attenuation |
 | After "but" | ×1.5 | Score emphasis |
-| Exclamation max | 4 | Effect ceiling |
 
 ---
 

@@ -1,0 +1,5 @@
+# Lexicon files are intentionally not committed (see License section of README.md).
+# Fetch them for testing with: bash test/fetch-fixtures.sh
+test/fixtures/
+
+node_modules/

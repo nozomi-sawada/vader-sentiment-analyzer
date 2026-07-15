@@ -227,27 +227,27 @@ V₀(wᵢ) = lexicon[wᵢ]
 
 ### 4.1 否定 (Negation)
 
-**ルール**: 各感情語について、その**前方3トークン**に否定語があればスコアを反転
+**ルール**: 各感情語について、その**前方3トークン**（それ自身がレキシコン語でないもの）に否定語があればスコアに N_SCALAR を乗算
 
 ```javascript
-// 否定語の例
-NEGATION_WORDS = {
-  "not", "no", "never", "don't", "doesn't", 
-  "didn't", "can't", "won't", "couldn't",
-  "isn't", "wasn't", "weren't", ...
+// 否定語リスト（本家実装の NEGATE）
+NEGATE = {
+  "not", "never", "neither", "nor", "none", "nope", "nothing", "nowhere",
+  "don't", "dont", "doesn't", "doesnt", "didn't", "didnt",
+  "can't", "cant", "cannot", "won't", "wont", "couldn't", "couldnt",
+  "isn't", "isnt", "wasn't", "wasnt", "weren't", "werent",
+  "without", "rarely", "seldom", "despite", "uh-uh", ...
 }
+// さらに、"n't" を含むトークンはすべて否定語として扱われる
 ```
 
-**適用方法**:
+**適用方法**（本家 `_negation_check` の移植）:
 
 ```
-for each token i with V₀(wᵢ) ≠ 0:
-    for j from max(0, i-3) to i-1:
-        if tokens[j] in NEGATION_WORDS:
-            if j == i-3 and tokens[i-1] not in ["or", "nor"]:
-                continue  // 特別ルール
-            V₁(wᵢ) = V₀(wᵢ) × N_SCALAR
-            break
+for startI from 0 to 2:                       // 距離 1, 2, 3
+    if i > startI and tokens[i-(startI+1)] not in LEXICON:
+        if tokens[i-(startI+1)] が否定語:
+            V₁(wᵢ) = V(wᵢ) × N_SCALAR
 ```
 
 **パラメータ**:
@@ -257,21 +257,23 @@ for each token i with V₀(wᵢ) ≠ 0:
 
 論文の実験により、単純な反転（×-1.0）よりも、やや弱めの反転がソーシャルメディアテキストでは適切であることが判明。
 
+**特殊ケース**（いずれも本家どおり実装）:
+
+- `"never so <語>"` / `"never this <語>"` — 否定ではなく強調（×1.25）として扱う
+- `"without doubt"` — 否定として扱わない
+- `"no"` — NEGATEリストには含まれない。代わりに、"no" がレキシコン語の直前（距離1〜2、または距離3で直後が "or"/"nor"）にある場合、その語に N_SCALAR を乗算し、レキシコン語が続く "no" 自体は0点とする
+- `"least <語>"` — 直前が "at"/"very" でなければ後続の語を否定（×N_SCALAR）
+
 **例**:
 
 ```
-"This is not very good or nice"
-位置: 0   1   2    3    4    5  6
+"This is not very good"
+位置: 0   1   2   3    4
 
 "good" (位置4):
-  前方3トークン: 位置1,2,3 ("is", "not", "very")
-  → "not"が位置2にある → 否定適用
-  → V₁ = 1.9 × -0.74 = -1.406
-
-"nice" (位置6):
-  前方3トークン: 位置3,4,5 ("very", "good", "or")
-  → 否定語なし → 否定適用なし
-  → V₁ = 1.8 (変化なし)
+  距離1: "very" → 強調語 (+0.293)
+  距離2: "not"  → 否定
+  → V₁ = (1.9 + 0.293) × -0.74 = -1.623
 ```
 
 ### 4.2 強調語 (Boosters)
@@ -305,30 +307,34 @@ for startI from 0 to 2:
             scalar = BOOSTER_DICT[prevToken]
             if V(wᵢ) < 0:
                 scalar *= -1  // ネガティブ語の場合は反転
+            if prevToken が大文字 かつ 文中に大文字差がある:
+                scalar に C_INCR を加算（符号に合わせる）
             
             // 距離による減衰
             if startI == 1:
-                scalar *= 0.95  // 距離2: 5%減衰
+                scalar *= 0.95  // 2語前: 5%減衰
             if startI == 2:
-                scalar *= 0.90  // 距離3: 10%減衰
+                scalar *= 0.90  // 3語前: 10%減衰
             
             V₂(wᵢ) = V₁(wᵢ) + scalar
 ```
 
+"kind of" / "sort of" のような複数語の弱化表現も、前方トークンのバイグラムとして検出されます（本家 `_special_idioms_check`）。
+
 **距離減衰の理論的根拠**:
 
-強調語が感情語に近いほど影響が強い（言語学的な近接性の原則）
+強調語が感情語に近いほど影響が強い（言語学的な近接性の原則）。感情語の直前の強調語は減衰なし（×1.00）で適用されます。
 
 **例**:
 
 ```
 "This is very very good"
          ↑    ↑    ↑
-      距離2 距離1  感情語
+      2語前  1語前  感情語
 
-距離1の"very": scalar = +0.293 × 0.95 = +0.278
-距離2の"very": scalar = +0.293 × 0.90 = +0.264
-合計: V₂ = 1.9 + 0.278 + 0.264 = 2.442
+1語前の"very": scalar = +0.293 × 1.00 = +0.293
+2語前の"very": scalar = +0.293 × 0.95 = +0.278
+合計: V₂ = 1.9 + 0.293 + 0.278 = 2.471
 ```
 
 ### 4.3 大文字強調 (ALL CAPS)
@@ -372,31 +378,29 @@ if (word === word.toUpperCase() && isCapDiff) {
 → V₃ = 2.5 (変化なし)
 ```
 
-### 4.4 感嘆符 (Exclamation Marks)
+### 4.4 句読点による強調（感嘆符・疑問符）
 
-**ルール**: 感情語の直後の感嘆符（最大4個）が強調
+**ルール**: テキスト中の感嘆符・疑問符は、個々の単語ではなく**合計スコア**を増幅します。増幅値は正規化の前に、合計値の符号方向に加算されます。
 
 ```javascript
-let exclamationCount = 0;
-if (i + 1 < tokens.length) {
-    const nextToken = tokens[i + 1];
-    if (/^!+$/.test(nextToken.text)) {
-        exclamationCount = Math.min(nextToken.text.length, 4);
-    }
+// テキスト全体でカウント（本家 _punctuation_emphasis() の移植）
+epAmplifier = min(count("!"), 4) × 0.292;
+
+qmCount = count("?");
+qmAmplifier = 0;
+if (qmCount > 1) {
+    qmAmplifier = qmCount <= 3 ? qmCount × 0.18 : 0.96;
 }
 
-const boost = exclamationCount × 0.292;
+punctEmphasis = epAmplifier + qmAmplifier;
 
-if (V(wᵢ) > 0) {
-    V₄(wᵢ) = V₃(wᵢ) + boost;
-} else {
-    V₄(wᵢ) = V₃(wᵢ) - boost;
-}
+if (sum > 0)      sum += punctEmphasis;
+else if (sum < 0) sum -= punctEmphasis;
 ```
 
 **パラメータ**:
-- `E_INCR = 0.292` (感嘆符1個あたり)
-- 最大4個まで（それ以上は効果なし）
+- 感嘆符: 1個あたり `+0.292`、最大4個（それ以上は効果なし）
+- 疑問符: 2〜3個は1個あたり `+0.18`、4個以上は合計 `+0.96`
 
 **なぜ4個まで？**
 
@@ -405,12 +409,14 @@ if (V(wᵢ) > 0) {
 **例**:
 
 ```
-"This is amazing!"      → boost = 1 × 0.292 = +0.292
-"This is amazing!!"     → boost = 2 × 0.292 = +0.584
-"This is amazing!!!"    → boost = 3 × 0.292 = +0.876
-"This is amazing!!!!"   → boost = 4 × 0.292 = +1.168
-"This is amazing!!!!!"  → boost = 4 × 0.292 = +1.168 (上限)
+"This is amazing!"      → punctEmphasis = 1 × 0.292 = +0.292
+"This is amazing!!!"    → punctEmphasis = 3 × 0.292 = +0.876
+"This is amazing!!!!!"  → punctEmphasis = 4 × 0.292 = +1.168 (上限)
+"Really bad?? Really??" → punctEmphasis = 0.96 (疑問符4個)
+"Seriously???"          → punctEmphasis = 3 × 0.18 = +0.54
 ```
+
+同じ増幅値は、pos/neu/neg比率の計算時にもポジティブ・ネガティブ合計の大きい側に加算されます（5.3参照）。
 
 ### 4.5 "but"による文脈調整
 
@@ -516,27 +522,31 @@ compound = Math.max(-1, Math.min(1, compound));
 各カテゴリーの比率を計算：
 
 ```javascript
+// 本家 _sift_sentiment_scores() の移植：ポジティブ語は (スコア + 1)、
+// ネガティブ語は (スコア - 1) を加算する。±1 は「中立語1個 = 1」との
+// バランスを取るための補正。
 let posSum = 0, negSum = 0, neuCount = 0;
 
-sentiments.forEach(s => {
-    if (s.adjustedScore > 0) {
-        posSum += s.adjustedScore;
-    } else if (s.adjustedScore < 0) {
-        negSum += Math.abs(s.adjustedScore);
-    } else {
-        neuCount++;
-    }
+valences.forEach(v => {
+    if (v > 0) posSum += v + 1;
+    if (v < 0) negSum += v - 1;
+    if (v === 0) neuCount++;
 });
 
-const total = posSum + negSum + neuCount;
-const pos = total > 0 ? posSum / total : 0;
-const neg = total > 0 ? negSum / total : 0;
-const neu = total > 0 ? neuCount / total : 0;
+// 句読点による強調は優勢な側に加算
+if (posSum > Math.abs(negSum))      posSum += punctEmphasis;
+else if (posSum < Math.abs(negSum)) negSum -= punctEmphasis;
+
+const total = posSum + Math.abs(negSum) + neuCount;
+const pos = Math.abs(posSum / total);
+const neg = Math.abs(negSum / total);
+const neu = Math.abs(neuCount / total);
 ```
 
 **性質**:
 - `pos + neg + neu ≈ 1.0`
 - これらは感情語の**比率**を表す（Compoundとは独立）
+- トークンごとの `±1` 補正は本家実装と同一。この補正がないと比率がPython版VADERとずれる
 
 **Compound vs Pos/Neg/Neu**:
 
@@ -553,31 +563,28 @@ Pos: 0.45, Neg: 0.40, Neu: 0.15 (ポジティブとネガティブが混在)
 
 ### 6.1 トークン化
 
+トークン化は本家実装の `SentiText` と同一です：
+
 ```javascript
-function tokenize(text) {
-    const emojiRegex = /[\u{1F300}-\u{1F9FF}...]/u;
-    const regex = /(!+|\?+|[:()\[\]{}<>*\-_|\\\/]+|[\w']+|[絵文字])/gu;
-    
-    let tokens = [];
-    let match;
-    
-    while ((match = regex.exec(text)) !== null) {
-        tokens.push({
-            text: match[0],
-            index: match.index,
-            lower: match[0].toLowerCase(),
-            isEmoji: emojiRegex.test(match[0])
-        });
-    }
-    
-    return tokens;
+// 1. 空白で分割
+// 2. 各トークンの先頭・末尾の句読点を除去
+// 3. 除去後が2文字以下なら元のトークンを保持
+//    （":)" は除去すると "" になるため、エモーティコンとみなして保持）
+function stripPuncIfWord(token) {
+    const stripped = stripPunctuation(token); // Python str.strip(string.punctuation) 相当
+    if (stripped.length <= 2) return token;
+    return stripped;
+}
+
+function wordsAndEmoticons(text) {
+    return text.trim().split(/\s+/).map(stripPuncIfWord);
 }
 ```
 
 **トークン化の特徴**:
-- 感嘆符・疑問符を独立トークンとして保持
-- 絵文字を個別に認識
-- 記号も処理対象に含む
+- 縮約形（"isn't"）と大半のエモーティコン（":)"、":D"、"<3"）を保持
+- 単語の末尾の句読点は除去（"good!" → "good"）。感嘆符・疑問符はトークンではなくテキスト単位で処理（4.4参照）
+- 絵文字はトークン化の**前**に説明文へ変換（6.5参照）
 
 ### 6.2 ALL CAPS判定
 
@@ -598,24 +605,26 @@ function allCapDifferential(tokens) {
 
 ### 6.3 処理順序の重要性
 
-VADERのルール適用には**順序が重要**：
+VADERのルール適用には**順序が重要**（本家実装と同一）：
 
 ```
-1. トークン化
-2. "but"の位置を特定
+1. 絵文字を説明文に変換
+2. トークン化（空白分割＋句読点除去）
 3. 各トークンについて：
-   a. レキシコンスコア取得 (V₀)
-   b. 前方3トークンの強調語チェック（距離減衰）→ V₂
-   c. ALL CAPS判定 → V₃
-   d. 次トークンの感嘆符チェック → V₄
-   e. "but"による調整 → V₅
-   f. 前方3トークンの否定チェック → V_final
-4. Compound Score計算
+   a. 強調語・"kind of" 自体はスコア0 → 次のトークンへ
+   b. レキシコンスコア取得 (V₀)
+   c. "no" の特殊処理
+   d. ALL CAPS強調 → V₁
+   e. 前方3トークンを近い順にチェック：
+      強調語（距離減衰）→ 否定チェック → イディオムチェック → V₂
+   f. "least" チェック → V₃
+4. トークン列全体に "but" 調整を適用（前×0.5 / 後×1.5）
+5. 全トークンのスコアを合計し、句読点強調を加算して正規化 → Compound Score
 ```
 
 **なぜこの順序？**
 
-否定は最後に適用することで、他のルールで調整されたスコアに対して作用する。
+乗算的なルール（否定、"but"）を加算的なルール（ALL CAPS、強調語）の後に適用することで、調整済みスコア全体に作用させる。本家実装と同じ順序。
 
 ### 6.4 トークン処理戦略
 
@@ -624,41 +633,19 @@ VADERのルール適用には**順序が重要**：
 この実装は、感情語だけでなく入力テキストの**全トークン**を処理します：
 
 ```javascript
-// Python VADER互換のため全トークンを処理
-tokens.forEach((token, i) => {
-    const lower = token.lower;
-    const original = token.text;
-    
-    // レキシコンをチェック
-    let lexiconEntry = vaderLexicon[lower] || vaderLexicon[original];
-    
-    if (!lexiconEntry) {
-        // 非感情語もスコア0で追加
-        sentiments.push({
-            token: original,
-            type: 'neutral',
-            score: 0,
-            adjustedScore: 0
-        });
-        return;
-    }
-    
-    // 感情語を処理...
-});
+// Python VADER互換のため全トークンを処理（vader.js の analyze() 参照）
+for (let i = 0; i < wordsAndEmoticons.length; i++) {
+    // 強調語・"kind of" 自体はスコア0
+    // それ以外のトークンはレキシコンスコア（なければ0）にルールを適用
+    valences.push(valence);
+}
 ```
 
 **なぜ全トークンを処理するのか？**
 
 1. **Python VADER互換性**: オリジナルのPython実装は計算に全トークンを含める
-2. **正確なpos/neg/neu比率**: 比率は全トークンに基づいて計算される：
-   ```javascript
-   const total = posSum + Math.abs(negSum) + neuCount;  // 全トークン
-   const pos = Math.abs(posSum / total);
-   const neg = Math.abs(negSum / total);
-   const neu = Math.abs(neuCount / total);
-   ```
-
-3. **表示の最適化**: 内部では全トークンを処理するが、詳細分析では見やすさのため感情語のみを表示
+2. **正確なpos/neg/neu比率**: 比率は全トークンに基づいて計算される（中立語は1個 = 1 として数える。5.3参照）
+3. **表示の最適化**: 内部では全トークンを処理するが、詳細分析ではスコアまたは適用ルールのあるトークンのみを表示
 
 **処理例:**
 
@@ -678,27 +665,22 @@ tokens.forEach((token, i) => {
 ```
 love: +3.2 (positive)
 ```
-```
 
 ### 6.5 絵文字処理（オプション）
 
+本家実装と同一：入力テキスト中の各絵文字は、トークン化の**前**にインラインで説明文へ置換されます。説明文の単語は通常のトークンとして分析に参加します（否定や強調語との相互作用も含む）。
+
 ```javascript
-if (token.isEmoji && emojiLexicon[token.text]) {
-    const description = emojiLexicon[token.text];
-    // 例: 😊 → "smiling face"
-    
-    // 説明文の各単語をVADERレキシコンで検索
-    const words = description.split(/\s+/);
-    let totalScore = 0;
-    
-    words.forEach(word => {
-        if (vaderLexicon[word]) {
-            totalScore += vaderLexicon[word].score;
-        }
-    });
-    
-    // 合計スコアを絵文字のスコアとする
+// polarity_scores() の絵文字前処理の移植
+for (const ch of text) {           // コードポイント単位で走査
+    if (ch in emojiLexicon) {
+        // 例: 😊 → "smiling face with smiling eyes"
+        output += (needsSpace ? ' ' : '') + emojiLexicon[ch];
+    } else {
+        output += ch;
+    }
 }
+// 分析は絵文字置換後のテキストに対して実行される
 ```
 
 ---
@@ -708,17 +690,18 @@ if (token.isEmoji && emojiLexicon[token.text]) {
 | パラメータ | 値 | 用途 |
 |-----------|-----|------|
 | N_SCALAR | -0.74 | 否定の強度 |
-| B_INCR | ±0.293 | 強調語の増減 |
+| B_INCR / B_DECR | ±0.293 | 強調語の増減 |
 | C_INCR | 0.733 | 大文字の強調 |
-| E_INCR | 0.292 | 感嘆符の強調 |
+| 感嘆符の強調 | 1個あたり 0.292（最大4個） | テキスト単位の増幅 |
+| 疑問符の強調 | 2〜3個: 0.18/個、4個以上: 0.96 | テキスト単位の増幅 |
 | α | 15 | 正規化のスムージング |
 | 否定範囲 | 3トークン | 前方チェック範囲 |
 | 強調語範囲 | 3トークン | 前方チェック範囲 |
-| 距離1減衰 | 0.95 | 強調語の距離減衰 |
-| 距離2減衰 | 0.90 | 強調語の距離減衰 |
-| but前減衰 | 0.5 | but前のスコア調整 |
-| but後強調 | 1.5 | but後のスコア調整 |
-| 感嘆符上限 | 4個 | 効果の上限 |
+| 2語前の減衰 | ×0.95 | 強調語の距離減衰 |
+| 3語前の減衰 | ×0.90 | 強調語の距離減衰 |
+| "never so/this" | ×1.25 | 強調の特殊ケース |
+| but前減衰 | ×0.5 | but前のスコア調整 |
+| but後強調 | ×1.5 | but後のスコア調整 |
 
 ---
 

@@ -42,7 +42,7 @@ https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/emoji_utf8_
 
 ### 2. Run the Tool
 
-1. Open `vader_sentiment_analyzer.html` in your browser
+1. Open `index.html` in your browser (keep `vader.js` and `app.js` in the same folder)
 2. Upload the lexicon file(s)
 3. Enter text and click "Analyze"
 
@@ -124,8 +124,11 @@ VADER calculates sentiment scores through the following steps:
    | **Negation** | Reverses polarity (×-0.74) | "not good" → +1.9 → -1.41 |
    | **Booster words** | Amplifies score (±0.293) | "very good" → +1.9 → +2.19 |
    | **ALL CAPS** | Emphasizes (±0.733) | "GOOD" → +1.9 → +2.63 |
-   | **Exclamation marks** | Emphasizes (±0.292 each, max 4) | "good!" → +1.9 → +2.19 |
+   | **Exclamation marks** | Text-level emphasis (+0.292 each, max 4) applied to the summed score | "good!" → sum +1.9 → +2.19 |
+   | **Question marks** | Text-level emphasis (2–3: +0.18 each, 4+: +0.96) | "really??" |
    | **"but" clause** | Before ×0.5, After ×1.5 | "good but bad" → adjust both |
+   | **Idioms & special cases** | Fixed valence for phrases | "bad ass" → +1.5, "the shit" → +3 |
+   | **"least" / "no"** | Contextual negation | "least good", "no good" |
 
 3. **Normalization and Compound Score Calculation**
 
@@ -142,56 +145,91 @@ VADER calculates sentiment scores through the following steps:
 
 ### Implementation Fidelity
 
-This tool faithfully reproduces the original VADER implementation:
+The analysis engine (`vader.js`) is a line-by-line port of the reference Python
+implementation ([vaderSentiment 3.3.2](https://github.com/cjhutto/vaderSentiment)),
+and its output is verified against the reference by an automated golden test
+suite (see [Testing](#testing)):
 
 - ✅ Lexicon-based scoring using original VADER lexicon
-- ✅ Negation handling (checks 3 tokens back)
-- ✅ Booster words with distance decay (1→0.95, 2→0.90, 3→0.90)
-- ✅ ALL CAPS detection and emphasis
-- ✅ Exclamation marks (up to 4)
-- ✅ "but" clause contextual adjustment
-- ✅ Normalization (α=15)
-- ✅ Emoji support via text conversion (optional)
-- ✅ Sentence splitting with abbreviation protection (Mr., Dr., etc.)
-- ✅ All tokens processing - Processes all tokens internally for accurate compound score (Python VADER compatible)
+- ✅ Tokenization identical to the reference (`SentiText`): whitespace split with punctuation stripping that preserves emoticons such as `:)`, `:D`, `<3`
+- ✅ Negation handling (checks 3 tokens back), including contractions ("n't"), "never so/this" emphasis, "without doubt", "least", and "no" special cases
+- ✅ Booster words with distance decay (immediate → ×1.00, 2 back → ×0.95, 3 back → ×0.90), including ALL CAPS boosters
+- ✅ ALL CAPS detection and emphasis (±0.733)
+- ✅ Punctuation emphasis at text level: exclamation marks (up to 4, +0.292 each) and question marks (2–3: +0.18 each, 4+: +0.96)
+- ✅ "but" clause contextual adjustment (before ×0.5, after ×1.5)
+- ✅ Special-case idioms ("bad ass", "the shit", "to die for", "yeah right", ...) and multiword dampeners ("kind of", "sort of")
+- ✅ Compound normalization (α=15) and pos/neu/neg proportions computed exactly as in the reference (±1 compensation per token)
+- ✅ Emoji support via inline text-description conversion, identical to the reference (optional)
+- ✅ Sentence splitting with abbreviation protection (Mr., Dr., etc.) — an application feature on top of VADER
+
+### Project Structure
+
+```
+index.html   – markup only (no inline scripts)
+vader.js     – the VADER algorithm (browser + Node.js)
+app.js       – UI layer (file loading, rendering, events)
+test/        – golden tests against the reference Python implementation
+```
+
+### Testing
+
+The golden test suite pins the exact scores of the reference Python
+implementation for ~100 sentences (negation, boosters, ALL CAPS, punctuation,
+idioms, emoticons, emojis, edge cases) and asserts that `vader.js` reproduces
+them:
+
+```bash
+bash test/fetch-fixtures.sh   # download lexicon files (not committed, see License)
+node test/run-tests.js        # compare vader.js against test/golden.json
+```
+
+To regenerate the golden data from the reference implementation:
+
+```bash
+pip install vaderSentiment==3.3.2
+python3 test/generate_golden.py
+```
 
 ## Examples
 
 ### Basic Analysis
 ```
 Input: "I love this product, it's amazing!"
-Result: Strong Positive (0.8313)
+Result: Strong Positive (0.8516)
   - love: +3.2
-  - amazing: +2.9
+  - amazing: +2.8
+  - punctuation emphasis (!): +0.292
 ```
 
 ### Negation Handling
 ```
 Input: "This is not very good"
-Result: Weak Negative (-0.3612)
+Result: Weak Negative (-0.3865)
   - not: negation word
   - very: booster
-  - good: +1.9 → -1.62 (negation effect ×-0.74)
+  - good: +1.9 → -1.62 (booster +0.293, then negation ×-0.74)
 ```
 
 ### Context Shift with "but"
 ```
-Input: "The book offers fascinating ideas but sadly fails"
-Result: Weak Negative (-0.3804)
-  - fascinating: +3.0 → +1.5 (before "but" ×0.5)
-  - sadly: -1.5 → -2.25 (after "but" ×1.5)
-  - fails: -2.0 → -3.0 (after "but" ×1.5)
+Input: "The book offers fascinating ideas but sadly fails in its delivery."
+Result: Strong Negative (-0.7311)
+  - fascinating: +2.5 → +1.25 (before "but" ×0.5)
+  - sadly: -1.8 → -2.70 (after "but" ×1.5)
+  - fails: -1.8 → -2.70 (after "but" ×1.5)
 ```
 
 ### Sentence-level Analysis
 ```
 Input: "I love this! It's amazing! Quality is excellent!"
 Result: 3 sentences analyzed separately
-  - Sentence 1: Strong Positive (0.6369)
-  - Sentence 2: Strong Positive (0.5994)
-  - Sentence 3: Strong Positive (0.6588)
-  Average: 0.6317
+  - Sentence 1: Strong Positive (0.6696)
+  - Sentence 2: Strong Positive (0.6239)
+  - Sentence 3: Strong Positive (0.6114)
+  Average: 0.6350
 ```
+
+All example scores are identical to those of the reference Python implementation (vaderSentiment 3.3.2).
 
 ## Validation and Reliability
 
@@ -209,9 +247,9 @@ Hutto & Gilbert (2014) validated VADER's performance on the following datasets:
 
 This tool aims to faithfully reproduce the behavior of the original VADER implementation (Python version). Key implementation aspects:
 
-1. **Core Algorithm** - Implements grammatical and pragmatic rules, score calculation formulas, normalization parameters, and negation scope (3 tokens)
+1. **Core Algorithm** - Direct port of the reference implementation: grammatical and pragmatic rules, score calculation formulas, normalization parameters, and negation scope (3 tokens)
 2. **Lexicon Usage** - Uses original VADER lexicon with compatibility for lexicon format and preservation of standard deviation data
-3. **Verification** - Tested with basic examples and validated core functionality
+3. **Verification** - Automated golden tests assert that compound/pos/neu/neg scores match the reference Python implementation (vaderSentiment 3.3.2) on ~100 test sentences (see [Testing](#testing))
 
 ### Limitations
 
