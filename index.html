@@ -1,129 +1,108 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--
-        Security Note: CSP is configured to allow Tailwind CDN for development.
-        Application scripts are external files (vader.js / app.js), so
-        'unsafe-inline' is no longer needed for script-src.
-        For production, self-host Tailwind CSS and use stricter CSP:
-        Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;
-    -->
     <meta http-equiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; upgrade-insecure-requests;">
+          content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none';">
     <title>VADER準拠 感情分析ツール | VADER-based Sentiment Analysis Tool</title>
-    <!-- TODO: Self-host Tailwind CSS for production and remove CDN dependency -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .sentiment-bar {
-            transition: width 0.5s ease;
-        }
-        .chart-bar {
-            transition: height 0.3s ease;
-        }
-    </style>
+    <link rel="stylesheet" href="tailwind.css">
 </head>
 <body class="bg-gray-50">
     <div id="app" class="min-h-screen p-6">
         <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-8">
-            <h1 class="text-3xl font-bold text-blue-900 mb-2">
-                VADER準拠 感情分析ツール / VADER-based Sentiment Analysis Tool
-            </h1>
-            <p class="text-sm text-gray-600 mb-2">
-                ※VADERは英語テキスト専用の感情分析システムです。エモーティコン(顔文字)や絵文字にも対応しています。
-            </p>
+
+            <div class="flex items-start justify-between gap-4 mb-2">
+                <h1 class="text-3xl font-bold text-blue-900">
+                    <span class="lang-ja">VADER準拠 感情分析ツール</span>
+                    <span class="lang-en">VADER-based Sentiment Analysis Tool</span>
+                </h1>
+                <div class="flex rounded border border-gray-300 overflow-hidden text-sm flex-shrink-0" role="group" aria-label="Language">
+                    <button type="button" data-lang-btn="ja" class="px-3 py-1.5 font-semibold">日本語</button>
+                    <button type="button" data-lang-btn="en" class="px-3 py-1.5 font-semibold">English</button>
+                </div>
+            </div>
             <p class="text-sm text-gray-600 mb-6">
-                VADER is a sentiment analysis system designed specifically for English text, supporting emoticons and emojis.
+                <span class="lang-ja">VADERは英語テキスト専用の感情分析システムです。エモーティコン（顔文字）や絵文字にも対応しています。</span>
+                <span class="lang-en">VADER is a sentiment analysis system designed for English text, supporting emoticons and emojis.</span>
             </p>
 
             <div id="notification" class="hidden mb-4 p-4 rounded"></div>
 
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-                <h3 class="font-bold text-blue-900 mb-2">📖 VADERについて / About VADER</h3>
-                <p class="text-sm mb-2">
-                    <strong>VADER (Valence Aware Dictionary and sEntiment Reasoner)</strong> は、
-                    ソーシャルメディアテキストの感情分析のために開発された辞書ベースの感情分析ツールです。
-                </p>
+            <div class="bg-blue-50 border-l-4 border-blue-700 p-4 mb-4">
+                <h3 class="font-bold text-blue-900 mb-2">
+                    <span class="lang-ja">VADERについて</span>
+                    <span class="lang-en">About VADER</span>
+                </h3>
                 <p class="text-sm text-gray-700">
-                    VADER is a lexicon and rule-based sentiment analysis tool specifically attuned to sentiments
-                    expressed in social media.
+                    <span class="lang-ja"><strong>VADER (Valence Aware Dictionary and sEntiment Reasoner)</strong> は、ソーシャルメディアテキストの感情分析のために開発された辞書・ルールベースの感情分析手法です（Hutto &amp; Gilbert, 2014）。本ツールはその本家Python実装（vaderSentiment 3.3.2）をブラウザ向けに移植したものです。</span>
+                    <span class="lang-en"><strong>VADER (Valence Aware Dictionary and sEntiment Reasoner)</strong> is a lexicon and rule-based sentiment analysis method attuned to sentiments expressed in social media (Hutto &amp; Gilbert, 2014). This tool is a browser port of the reference Python implementation (vaderSentiment 3.3.2).</span>
                 </p>
             </div>
 
-            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-                <h3 class="font-bold text-blue-900 mb-2">🔧 本ツールの機能 / Tool Features</h3>
-                <p class="text-sm mb-3">
-                    本ツールはVADERアルゴリズムを実装したブラウザベースのアプリケーションです：
-                </p>
-                <p class="text-sm mb-3">
-                    This tool is a browser-based application that implements the VADER algorithm:
-                </p>
-
+            <div class="bg-blue-50 border-l-4 border-blue-700 p-4 mb-6">
+                <h3 class="font-bold text-blue-900 mb-2">
+                    <span class="lang-ja">本ツールの機能</span>
+                    <span class="lang-en">Tool Features</span>
+                </h3>
                 <div class="space-y-2">
                     <div class="flex items-start">
-                        <span class="text-blue-600 mr-2">✓</span>
+                        <span class="text-blue-700 mr-2">✓</span>
                         <p class="text-sm text-gray-700">
-                            VADERレキシコンの記号・絵文字を含むすべての語彙に対応<br/>
-                            <span class="text-xs text-gray-600">Supports all vocabulary in the VADER lexicon including symbols and emoticons</span>
+                            <span class="lang-ja">VADERレキシコンの記号・エモーティコンを含む全語彙に対応</span>
+                            <span class="lang-en">Supports the full VADER lexicon, including symbols and emoticons</span>
                         </p>
                     </div>
                     <div class="flex items-start">
-                        <span class="text-blue-600 mr-2">✓</span>
+                        <span class="text-blue-700 mr-2">✓</span>
                         <p class="text-sm text-gray-700">
-                            否定表現、強調語、大文字、感嘆符による感情強度の調整<br/>
-                            <span class="text-xs text-gray-600">Sentiment intensity adjustments for negation, boosters, ALL CAPS, and exclamation marks</span>
+                            <span class="lang-ja">否定表現、強調語、大文字、句読点による感情強度の調整</span>
+                            <span class="lang-en">Sentiment intensity adjustments for negation, boosters, ALL CAPS, and punctuation</span>
                         </p>
                     </div>
                     <div class="flex items-start">
-                        <span class="text-blue-600 mr-2">✓</span>
+                        <span class="text-blue-700 mr-2">✓</span>
                         <p class="text-sm text-gray-700">
-                            各単語のスコア調整プロセスを可視化した詳細分析<br/>
-                            <span class="text-xs text-gray-600">Detailed analysis visualizing the score adjustment process for each word</span>
+                            <span class="lang-ja">各単語のスコア調整プロセスを可視化した詳細分析</span>
+                            <span class="lang-en">Detailed analysis visualizing the score adjustment process for each word</span>
                         </p>
                     </div>
                     <div class="flex items-start">
-                        <span class="text-blue-600 mr-2">✓</span>
+                        <span class="text-blue-700 mr-2">✓</span>
                         <p class="text-sm text-gray-700">
-                            絵文字を説明文に変換して感情分析(オプション) 😊🎉❤️<br/>
-                            <span class="text-xs text-gray-600">Converts emojis to text descriptions for sentiment analysis (optional) 😊🎉❤️</span>
+                            <span class="lang-ja">絵文字を説明文に変換して分析（オプション）</span>
+                            <span class="lang-en">Converts emojis to text descriptions for analysis (optional)</span>
                         </p>
                     </div>
                     <div class="flex items-start">
-                        <span class="text-blue-600 mr-2">✓</span>
+                        <span class="text-blue-700 mr-2">✓</span>
                         <p class="text-sm text-gray-700">
-                            文ごとの分析（VADER論文推奨）<br/>
-                            <span class="text-xs text-gray-600">Sentence-level analysis (recommended by VADER paper)</span>
+                            <span class="lang-ja">文ごとの分析（VADER論文推奨）</span>
+                            <span class="lang-en">Sentence-level analysis (recommended by the VADER paper)</span>
                         </p>
                     </div>
                 </div>
-
-                <p class="text-sm mt-3 text-blue-900">
-                    ※このツールはVADERアルゴリズムの実装です。
-                </p>
-                <p class="text-sm text-blue-800">
-                    This tool is an implementation of the VADER algorithm.
-                </p>
             </div>
 
             <div id="file-upload-section" class="mb-8 space-y-4">
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-500 transition">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-600 transition">
                     <div class="flex items-start gap-4">
-                        <svg class="text-gray-400 flex-shrink-0" width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        <svg class="text-gray-400 flex-shrink-0" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z" />
                         </svg>
                         <div class="flex-1">
                             <h3 class="font-semibold text-lg mb-2">
-                                <span class="text-red-600">【必須】</span> VADERレキシコンファイル /
-                                <span class="text-red-600">【Required】</span> VADER Lexicon File
+                                <span class="text-red-700 lang-ja">【必須】</span><span class="lang-ja">VADERレキシコンファイル</span>
+                                <span class="text-red-700 lang-en">[Required]</span><span class="lang-en">VADER Lexicon File</span>
                             </h3>
                             <p class="text-sm text-gray-600 mb-3">
-                                約7,500語の感情語彙を含む、メインのレキシコンファイルです。<br/>
-                                Main lexicon file containing approximately 7,500 sentiment words.
+                                <span class="lang-ja">約7,500語の感情語彙を含む、メインのレキシコンファイルです。</span>
+                                <span class="lang-en">Main lexicon file containing approximately 7,500 sentiment words.</span>
                             </p>
                             <label class="cursor-pointer inline-block">
-                                <span class="text-blue-600 hover:text-blue-800 font-semibold">
-                                    📄 vader_lexicon.txt を選択 / Select vader_lexicon.txt
+                                <span class="text-blue-700 hover:text-blue-900 font-semibold underline underline-offset-2">
+                                    <span class="lang-ja">vader_lexicon.txt を選択</span>
+                                    <span class="lang-en">Select vader_lexicon.txt</span>
                                 </span>
                                 <input type="file" id="lexicon-file" accept=".txt" class="hidden">
                             </label>
@@ -131,8 +110,12 @@
                                 <a href="https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/vader_lexicon.txt"
                                    target="_blank"
                                    rel="noopener noreferrer"
-                                   class="text-blue-600 hover:underline">
-                                    📥 GitHubからダウンロード / Download from GitHub
+                                   class="text-blue-700 hover:underline inline-flex items-center gap-1">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                    </svg>
+                                    <span class="lang-ja">GitHubからダウンロード</span>
+                                    <span class="lang-en">Download from GitHub</span>
                                 </a>
                             </div>
                             <div id="lexicon-loaded" class="hidden mt-3 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-800"></div>
@@ -140,23 +123,24 @@
                     </div>
                 </div>
 
-                <div class="border-2 border-dashed border-blue-200 rounded-lg p-6 hover:border-blue-400 transition">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-600 transition">
                     <div class="flex items-start gap-4">
-                        <div class="text-4xl flex-shrink-0">😊</div>
+                        <svg class="text-gray-400 flex-shrink-0" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm5.25 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75z" />
+                        </svg>
                         <div class="flex-1">
                             <h3 class="font-semibold text-lg mb-2">
-                                <span class="text-blue-600">【オプション】</span> 絵文字レキシコン /
-                                <span class="text-blue-600">【Optional】</span> Emoji Lexicon
+                                <span class="text-blue-700 lang-ja">【オプション】</span><span class="lang-ja">絵文字レキシコン</span>
+                                <span class="text-blue-700 lang-en">[Optional]</span><span class="lang-en">Emoji Lexicon</span>
                             </h3>
                             <p class="text-sm text-gray-600 mb-3">
-                                約3,000種類以上の絵文字を説明文にマッピングするファイルです。<br/>
-                                形式: 絵文字[タブ]説明文（例: 😀	grinning face）<br/>
-                                Mapping file for 3,000+ emojis to text descriptions.<br/>
-                                Format: emoji[tab]description (e.g., 😀	grinning face)
+                                <span class="lang-ja">約3,000種類以上の絵文字を説明文にマッピングするファイルです。形式: 絵文字[タブ]説明文（例: 😀	grinning face）</span>
+                                <span class="lang-en">Mapping file for 3,000+ emojis to text descriptions. Format: emoji[tab]description (e.g., 😀	grinning face)</span>
                             </p>
                             <label class="cursor-pointer inline-block">
-                                <span class="text-blue-600 hover:text-blue-800 font-semibold">
-                                    😀 emoji_utf8_lexicon.txt を選択 / Select emoji_utf8_lexicon.txt
+                                <span class="text-blue-700 hover:text-blue-900 font-semibold underline underline-offset-2">
+                                    <span class="lang-ja">emoji_utf8_lexicon.txt を選択</span>
+                                    <span class="lang-en">Select emoji_utf8_lexicon.txt</span>
                                 </span>
                                 <input type="file" id="emoji-file" accept=".txt" class="hidden">
                             </label>
@@ -164,8 +148,12 @@
                                 <a href="https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/emoji_utf8_lexicon.txt"
                                    target="_blank"
                                    rel="noopener noreferrer"
-                                   class="text-blue-600 hover:underline">
-                                    📥 GitHubからダウンロード / Download from GitHub
+                                   class="text-blue-700 hover:underline inline-flex items-center gap-1">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                    </svg>
+                                    <span class="lang-ja">GitHubからダウンロード</span>
+                                    <span class="lang-en">Download from GitHub</span>
                                 </a>
                             </div>
                             <div id="emoji-loaded" class="hidden mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800"></div>
@@ -175,28 +163,32 @@
             </div>
 
             <div id="stats-section" class="hidden grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div class="border rounded-lg p-4">
-                    <div class="text-blue-600 mb-2">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="text-sm text-gray-600 mb-1">
+                        <span class="lang-ja">総単語数</span>
+                        <span class="lang-en">Total Words</span>
                     </div>
-                    <div class="text-sm text-gray-600 mb-1">総単語数 / Total Words</div>
                     <div id="stat-total" class="text-xl font-bold">0</div>
                 </div>
-                <div class="border rounded-lg p-4">
-                    <div class="text-green-600 mb-2">↗</div>
-                    <div class="text-sm text-gray-600 mb-1">ポジティブ / Positive</div>
-                    <div id="stat-positive" class="text-xl font-bold text-green-600">0</div>
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="text-sm text-gray-600 mb-1">
+                        <span class="lang-ja">ポジティブ</span>
+                        <span class="lang-en">Positive</span>
+                    </div>
+                    <div id="stat-positive" class="text-xl font-bold text-green-700">0</div>
                 </div>
-                <div class="border rounded-lg p-4">
-                    <div class="text-red-600 mb-2">↘</div>
-                    <div class="text-sm text-gray-600 mb-1">ネガティブ / Negative</div>
-                    <div id="stat-negative" class="text-xl font-bold text-red-600">0</div>
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="text-sm text-gray-600 mb-1">
+                        <span class="lang-ja">ネガティブ</span>
+                        <span class="lang-en">Negative</span>
+                    </div>
+                    <div id="stat-negative" class="text-xl font-bold text-red-700">0</div>
                 </div>
-                <div class="border rounded-lg p-4">
-                    <div class="text-gray-600 mb-2">—</div>
-                    <div class="text-sm text-gray-600 mb-1">中立 / Neutral</div>
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="text-sm text-gray-600 mb-1">
+                        <span class="lang-ja">中立</span>
+                        <span class="lang-en">Neutral</span>
+                    </div>
                     <div id="stat-neutral" class="text-xl font-bold text-gray-600">0</div>
                 </div>
             </div>
@@ -204,55 +196,75 @@
             <div id="tabs-section" class="hidden">
                 <div class="border-b mb-6">
                     <div class="flex space-x-4">
-                        <button class="tab-btn pb-2 px-4 font-semibold border-b-2 border-blue-600 text-blue-600" data-tab="analyze">
-                            テキスト分析 / Text Analysis
+                        <button class="tab-btn pb-2 px-4 font-semibold border-b-2 border-blue-700 text-blue-700" data-tab="analyze">
+                            <span class="lang-ja">テキスト分析</span>
+                            <span class="lang-en">Text Analysis</span>
                         </button>
                         <button class="tab-btn pb-2 px-4 font-semibold text-gray-500 hover:text-gray-700" data-tab="search">
-                            レキシコン検索 / Lexicon Search
+                            <span class="lang-ja">レキシコン検索</span>
+                            <span class="lang-en">Lexicon Search</span>
                         </button>
                         <button class="tab-btn pb-2 px-4 font-semibold text-gray-500 hover:text-gray-700" data-tab="stats">
-                            レキシコン統計 / Lexicon Statistics
+                            <span class="lang-ja">レキシコン統計</span>
+                            <span class="lang-en">Lexicon Statistics</span>
                         </button>
                     </div>
                 </div>
 
                 <div id="analyze-tab" class="tab-content">
-                    <h3 class="font-semibold mb-2">分析するテキストを入力 / Enter text to analyze</h3>
-                    <textarea id="text-input" class="w-full border rounded p-3 mb-4 min-h-32" placeholder="Enter text to analyze sentiment..."></textarea>
+                    <h3 class="font-semibold mb-2">
+                        <span class="lang-ja">分析するテキストを入力</span>
+                        <span class="lang-en">Enter text to analyze</span>
+                    </h3>
+                    <textarea id="text-input" class="w-full border border-gray-300 rounded p-3 mb-4 min-h-32"></textarea>
 
                     <div class="mb-4">
                         <label class="flex items-center space-x-2 mb-3 cursor-pointer">
                             <input type="checkbox" id="split-sentences-checkbox" class="w-4 h-4">
                             <span class="text-sm font-semibold">
-                                📄 文ごとに分析 / Analyze by sentence
-                                <span class="text-xs font-normal text-gray-600 ml-2">(VADER論文推奨 / Recommended by VADER paper)</span>
+                                <span class="lang-ja">文ごとに分析</span>
+                                <span class="lang-en">Analyze by sentence</span>
+                                <span class="text-xs font-normal text-gray-600 ml-2">
+                                    <span class="lang-ja">（VADER論文推奨）</span>
+                                    <span class="lang-en">(recommended by the VADER paper)</span>
+                                </span>
                             </span>
                         </label>
-                        <p class="text-sm text-gray-600 mb-2">サンプル文 / Sample texts:</p>
+                        <p class="text-sm text-gray-600 mb-2">
+                            <span class="lang-ja">サンプル文:</span>
+                            <span class="lang-en">Sample texts:</span>
+                        </p>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">I love this product, it's amazing!</button>
                             <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">The movie was okay, nothing special.</button>
                             <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">I don't like this at all, it's very bad.</button>
                             <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">This is not bad, actually quite good!</button>
                             <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">The book offers fascinating ideas but sadly fails in its delivery.</button>
-                            <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">I love this product! It's amazing! The quality is excellent!</button>
+                            <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">Sentiment analysis has never been this good!</button>
                             <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">I'm so happy 😊 This is amazing! 🎉</button>
                             <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">The product is great. But the shipping was terrible!</button>
                         </div>
                     </div>
 
-                    <button id="analyze-btn" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
-                        分析する / Analyze
+                    <button id="analyze-btn" class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 disabled:bg-gray-300 disabled:cursor-not-allowed">
+                        <span class="lang-ja">分析する</span>
+                        <span class="lang-en">Analyze</span>
                     </button>
 
-                    <div id="result-container" class="hidden mt-8 border rounded-lg p-6">
+                    <div id="result-container" class="hidden mt-8 border border-gray-200 rounded-lg p-6">
                         <div id="sentence-mode-results"></div>
                         <div id="single-mode-results">
-                            <h2 class="text-xl font-bold mb-4">分析結果 / Analysis Results</h2>
+                            <h2 class="text-xl font-bold mb-4">
+                                <span class="lang-ja">分析結果</span>
+                                <span class="lang-en">Analysis Results</span>
+                            </h2>
 
                             <div class="mb-6">
                                 <div class="text-center mb-4">
-                                    <div class="text-sm font-semibold text-gray-600 mb-2">感情強度 / Sentiment Intensity (Compound Score)</div>
+                                    <div class="text-sm font-semibold text-gray-600 mb-2">
+                                        <span class="lang-ja">感情強度 (Compound Score)</span>
+                                        <span class="lang-en">Sentiment Intensity (Compound Score)</span>
+                                    </div>
                                     <div id="compound-score-display" class="text-5xl font-bold mb-2">0.0000</div>
                                     <span id="sentiment-label" class="inline-block px-4 py-2 rounded text-white text-base font-semibold"></span>
                                     <p id="punct-emphasis" class="hidden text-xs text-gray-600 mt-2"></p>
@@ -263,36 +275,52 @@
                             </div>
 
                             <div class="grid grid-cols-3 gap-4 mb-6">
-                                <div class="border rounded p-3 text-center">
-                                    <div class="text-sm text-gray-600">ポジティブ / Positive</div>
-                                    <div id="pos-score" class="text-2xl font-bold text-green-600">0%</div>
+                                <div class="border border-gray-200 rounded p-3 text-center">
+                                    <div class="text-sm text-gray-600">
+                                        <span class="lang-ja">ポジティブ</span>
+                                        <span class="lang-en">Positive</span>
+                                    </div>
+                                    <div id="pos-score" class="text-2xl font-bold text-green-700">0%</div>
                                 </div>
-                                <div class="border rounded p-3 text-center">
-                                    <div class="text-sm text-gray-600">中立 / Neutral</div>
+                                <div class="border border-gray-200 rounded p-3 text-center">
+                                    <div class="text-sm text-gray-600">
+                                        <span class="lang-ja">中立</span>
+                                        <span class="lang-en">Neutral</span>
+                                    </div>
                                     <div id="neu-score" class="text-2xl font-bold text-gray-600">0%</div>
                                 </div>
-                                <div class="border rounded p-3 text-center">
-                                    <div class="text-sm text-gray-600">ネガティブ / Negative</div>
-                                    <div id="neg-score" class="text-2xl font-bold text-red-600">0%</div>
+                                <div class="border border-gray-200 rounded p-3 text-center">
+                                    <div class="text-sm text-gray-600">
+                                        <span class="lang-ja">ネガティブ</span>
+                                        <span class="lang-en">Negative</span>
+                                    </div>
+                                    <div id="neg-score" class="text-2xl font-bold text-red-700">0%</div>
                                 </div>
                             </div>
 
                             <div class="mb-6">
-                                <h3 class="font-semibold mb-2">感情表現のハイライト / Sentiment Highlights</h3>
+                                <h3 class="font-semibold mb-2">
+                                    <span class="lang-ja">感情表現のハイライト</span>
+                                    <span class="lang-en">Sentiment Highlights</span>
+                                </h3>
                                 <div id="highlighted-text" class="bg-gray-50 p-4 rounded leading-relaxed"></div>
+                                <div id="highlight-legend" class="mt-2"></div>
                             </div>
 
                             <div>
-                                <h3 class="font-semibold mb-2">詳細単語分析 / Detailed Token Analysis</h3>
+                                <h3 class="font-semibold mb-2">
+                                    <span class="lang-ja">詳細単語分析</span>
+                                    <span class="lang-en">Detailed Token Analysis</span>
+                                </h3>
                                 <div class="overflow-x-auto">
                                     <table class="w-full border-collapse text-sm">
                                         <thead>
                                             <tr class="bg-gray-100">
-                                                <th class="border p-2 text-left">単語 / Token</th>
-                                                <th class="border p-2">元スコア / Original</th>
-                                                <th class="border p-2">調整後 / Adjusted</th>
-                                                <th class="border p-2 text-left">調整内容 / Adjustments</th>
-                                                <th class="border p-2">標準偏差 / Std Dev</th>
+                                                <th class="border p-2 text-left"><span class="lang-ja">単語</span><span class="lang-en">Token</span></th>
+                                                <th class="border p-2"><span class="lang-ja">元スコア</span><span class="lang-en">Original</span></th>
+                                                <th class="border p-2"><span class="lang-ja">調整後</span><span class="lang-en">Adjusted</span></th>
+                                                <th class="border p-2 text-left"><span class="lang-ja">調整内容</span><span class="lang-en">Adjustments</span></th>
+                                                <th class="border p-2"><span class="lang-ja">標準偏差</span><span class="lang-en">Std Dev</span></th>
                                             </tr>
                                         </thead>
                                         <tbody id="token-table"></tbody>
@@ -305,64 +333,86 @@
 
                 <div id="search-tab" class="tab-content hidden">
                     <div class="mb-4">
-                        <input type="text" id="search-input" placeholder="単語・記号を検索... / Search words or symbols..." class="w-full border rounded p-3">
+                        <input type="text" id="search-input" class="w-full border border-gray-300 rounded p-3">
                     </div>
-                    <div id="search-results" class="border rounded max-h-96 overflow-y-auto">
+                    <div id="search-results" class="border border-gray-200 rounded max-h-96 overflow-y-auto">
                         <div class="p-8 text-center text-gray-500">
-                            キーワードを入力してください / Enter keywords to search
+                            <span class="lang-ja">キーワードを入力してください</span>
+                            <span class="lang-en">Enter keywords to search</span>
                         </div>
                     </div>
                 </div>
 
                 <div id="stats-tab" class="tab-content hidden">
-                    <h3 class="text-xl font-bold mb-4">レキシコン統計とレポート / Lexicon Statistics and Report</h3>
+                    <h3 class="text-xl font-bold mb-4">
+                        <span class="lang-ja">レキシコン統計とレポート</span>
+                        <span class="lang-en">Lexicon Statistics and Report</span>
+                    </h3>
 
                     <div class="mb-8">
-                        <h4 class="font-semibold mb-3">感情スコア分布 / Sentiment Score Distribution</h4>
+                        <h4 class="font-semibold mb-3">
+                            <span class="lang-ja">感情スコア分布</span>
+                            <span class="lang-en">Sentiment Score Distribution</span>
+                        </h4>
                         <div class="bg-gray-50 p-4 rounded">
                             <div id="distribution-chart" class="flex items-end h-64 gap-1"></div>
                             <div class="flex justify-between text-xs text-gray-600 mt-2">
-                                <span>-4.0 (最もネガティブ / Most Negative)</span>
-                                <span>0.0 (中立 / Neutral)</span>
-                                <span>4.0 (最もポジティブ / Most Positive)</span>
+                                <span><span class="lang-ja">-4.0（最もネガティブ）</span><span class="lang-en">-4.0 (most negative)</span></span>
+                                <span><span class="lang-ja">0.0（中立）</span><span class="lang-en">0.0 (neutral)</span></span>
+                                <span><span class="lang-ja">+4.0（最もポジティブ）</span><span class="lang-en">+4.0 (most positive)</span></span>
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-8">
-                        <h4 class="font-semibold mb-3">最もポジティブな単語 / Most Positive Words (Top 20)</h4>
+                        <h4 class="font-semibold mb-3">
+                            <span class="lang-ja">最もポジティブな単語（上位20語）</span>
+                            <span class="lang-en">Most Positive Words (Top 20)</span>
+                        </h4>
                         <div id="top-positive" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"></div>
 
-                        <h4 class="font-semibold mb-3">最もネガティブな単語 / Most Negative Words (Top 20)</h4>
+                        <h4 class="font-semibold mb-3">
+                            <span class="lang-ja">最もネガティブな単語（上位20語）</span>
+                            <span class="lang-en">Most Negative Words (Top 20)</span>
+                        </h4>
                         <div id="top-negative" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
                     </div>
 
                     <div>
-                        <h4 class="font-semibold mb-3">標準偏差の分析 / Standard Deviation Analysis</h4>
+                        <h4 class="font-semibold mb-3">
+                            <span class="lang-ja">標準偏差の分析</span>
+                            <span class="lang-en">Standard Deviation Analysis</span>
+                        </h4>
                         <p class="text-sm text-gray-600 mb-3">
-                            標準偏差が高い単語は、人によって評価が分かれる単語です。<br/>
-                            Words with high standard deviation have varying ratings among people.
+                            <span class="lang-ja">標準偏差が高い単語は、評価者によって評価が分かれる単語です。</span>
+                            <span class="lang-en">Words with high standard deviation received varying ratings among human raters.</span>
                         </p>
                         <div id="high-stddev" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-gray-50 border border-gray-300 rounded p-4 mt-8">
-                <h3 class="font-bold text-gray-900 mb-3">📖 クレジット・引用情報 / Credits & Citation</h3>
+            <div class="bg-gray-50 border border-gray-200 rounded p-4 mt-8">
+                <h3 class="font-bold text-gray-900 mb-3">
+                    <span class="lang-ja">クレジット・引用情報</span>
+                    <span class="lang-en">Credits &amp; Citation</span>
+                </h3>
 
-                <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-500 mb-4">
-                    <p class="mb-2"><strong>© 2025 Nozomi Sawada. All rights reserved.</strong></p>
+                <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-700 mb-4">
+                    <p class="mb-2"><strong>© 2025 Nozomi Sawada</strong></p>
                     <p class="text-sm text-gray-700">
-                        このツールは<strong>VADER (Hutto & Gilbert, 2014)</strong>アルゴリズムを実装したものです。<br/>
-                        This tool implements the <strong>VADER (Hutto & Gilbert, 2014)</strong> algorithm.
+                        <span class="lang-ja">このツールは<strong>VADER (Hutto &amp; Gilbert, 2014)</strong>アルゴリズムの実装です。</span>
+                        <span class="lang-en">This tool implements the <strong>VADER (Hutto &amp; Gilbert, 2014)</strong> algorithm.</span>
                     </p>
                 </div>
 
-                <div class="bg-white p-3 rounded border mb-2">
-                    <p class="text-sm font-semibold mb-1">引用文献 / Citation:</p>
+                <div class="bg-white p-3 rounded border border-gray-200 mb-2">
+                    <p class="text-sm font-semibold mb-1">
+                        <span class="lang-ja">引用文献:</span>
+                        <span class="lang-en">Citation:</span>
+                    </p>
                     <p class="text-xs font-mono">
-                        Hutto, C.J. & Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for<br/>
+                        Hutto, C.J. &amp; Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for<br/>
                         Sentiment Analysis of Social Media Text. Eighth International Conference on<br/>
                         Weblogs and Social Media (ICWSM-14). Ann Arbor, MI, June 2014.
                     </p>

@@ -1,7 +1,7 @@
 /**
  * app.js — UI layer for the VADER-based Sentiment Analysis Tool.
  * All sentiment computation lives in vader.js; this file only handles
- * file loading, DOM rendering, and event wiring.
+ * file loading, DOM rendering, language switching, and event wiring.
  */
 (function () {
     'use strict';
@@ -27,7 +27,8 @@
             } else if (key === 'class') {
                 node.className = value;
             } else if (key === 'style') {
-                node.setAttribute('style', value);
+                // CSSOM assignment (allowed under CSP without 'unsafe-inline')
+                node.style.cssText = value;
             } else {
                 // Safe: setAttribute with user data
                 node.setAttribute(key, value);
@@ -67,12 +68,130 @@
     }
 
     // ============================================================================
+    // Internationalization
+    // ============================================================================
+
+    const MESSAGES = {
+        ja: {
+            txtOnly: 'テキストファイル(.txt)をアップロードしてください',
+            tooLarge: 'ファイルが大きすぎます（上限10MB）',
+            lexiconEmpty: 'レキシコンとして読み込める行がありませんでした',
+            wordsLoaded: n => n + ' 単語を読み込みました',
+            emojisLoaded: n => n + ' 個の絵文字マッピングを読み込みました',
+            loadFailed: 'ファイルの読み込みに失敗しました',
+            emojiLoadFailed: '絵文字ファイルの読み込みに失敗しました',
+            enterText: '分析するテキストを入力してください',
+            loadLexiconFirst: 'まずレキシコンファイルを読み込んでください',
+            noSentences: '有効な文が見つかりませんでした',
+            strongPos: '強いポジティブ', weakPos: '弱いポジティブ', neutralLabel: '中立',
+            weakNeg: '弱いネガティブ', strongNeg: '強いネガティブ',
+            punct: v => '句読点による強調 (!, ?): +' + v,
+            sentenceResults: '文ごとの分析結果',
+            overallSummary: '全体の集計',
+            average: '平均',
+            totalSentences: '総文数',
+            nSentences: n => n + '文',
+            positive: 'ポジティブ', negative: 'ネガティブ', neutral: '中立',
+            sentenceN: n => '文' + n,
+            highlights: '感情表現のハイライト',
+            tokenAnalysis: '詳細単語分析',
+            thToken: '単語', thOriginal: '元スコア', thAdjusted: '調整後',
+            thAdjustments: '調整内容', thStdDev: '標準偏差',
+            searchPrompt: 'キーワードを入力してください',
+            searchPlaceholder: '単語・記号を検索...',
+            inputPlaceholder: '分析する英語テキストを入力...',
+            noResults: '検索結果がありません',
+            legPositive: 'ポジティブ', legNegative: 'ネガティブ',
+            legNegatedPos: '否定されたポジティブ語', legNegatedNeg: '否定されたネガティブ語',
+            legNegation: '否定語', legBooster: '強調・弱化語', legNeutral: '中立'
+        },
+        en: {
+            txtOnly: 'Please upload a text file (.txt)',
+            tooLarge: 'File too large (max 10MB)',
+            lexiconEmpty: 'No valid lexicon entries found',
+            wordsLoaded: n => n + ' words loaded',
+            emojisLoaded: n => n + ' emoji mappings loaded',
+            loadFailed: 'Failed to load file',
+            emojiLoadFailed: 'Failed to load emoji file',
+            enterText: 'Please enter text to analyze',
+            loadLexiconFirst: 'Please load the lexicon file first',
+            noSentences: 'No valid sentences found',
+            strongPos: 'Strong Positive', weakPos: 'Weak Positive', neutralLabel: 'Neutral',
+            weakNeg: 'Weak Negative', strongNeg: 'Strong Negative',
+            punct: v => 'Punctuation emphasis (!, ?): +' + v,
+            sentenceResults: 'Sentence-level Analysis Results',
+            overallSummary: 'Overall Summary',
+            average: 'Average',
+            totalSentences: 'Total',
+            nSentences: n => String(n),
+            positive: 'Positive', negative: 'Negative', neutral: 'Neutral',
+            sentenceN: n => 'Sentence ' + n,
+            highlights: 'Sentiment Highlights',
+            tokenAnalysis: 'Detailed Token Analysis',
+            thToken: 'Token', thOriginal: 'Original', thAdjusted: 'Adjusted',
+            thAdjustments: 'Adjustments', thStdDev: 'Std Dev',
+            searchPrompt: 'Enter keywords to search',
+            searchPlaceholder: 'Search words or symbols...',
+            inputPlaceholder: 'Enter text to analyze sentiment...',
+            noResults: 'No results found',
+            legPositive: 'positive', legNegative: 'negative',
+            legNegatedPos: 'negated positive', legNegatedNeg: 'negated negative',
+            legNegation: 'negation word', legBooster: 'booster/dampener', legNeutral: 'neutral'
+        }
+    };
+
+    let currentLang = 'ja';
+    try {
+        const saved = localStorage.getItem('vader-lang');
+        if (saved === 'ja' || saved === 'en') currentLang = saved;
+    } catch (e) { /* localStorage unavailable (e.g. some file:// contexts) */ }
+
+    function t(key, ...args) {
+        const v = MESSAGES[currentLang][key];
+        return typeof v === 'function' ? v(...args) : v;
+    }
+
+    function applyLanguage(lang) {
+        currentLang = lang;
+        document.documentElement.dataset.lang = lang;
+        document.documentElement.lang = lang;
+        try { localStorage.setItem('vader-lang', lang); } catch (e) { /* ignore */ }
+
+        document.querySelectorAll('[data-lang-btn]').forEach(btn => {
+            const active = btn.dataset.langBtn === lang;
+            btn.className = 'px-3 py-1.5 font-semibold ' +
+                (active ? 'bg-blue-700 text-white' : 'bg-white text-gray-600 hover:bg-gray-100');
+        });
+
+        document.getElementById('search-input').placeholder = t('searchPlaceholder');
+        document.getElementById('text-input').placeholder = t('inputPlaceholder');
+
+        // Re-render language-dependent dynamic content
+        if (state.lexiconCount !== null) {
+            document.getElementById('lexicon-loaded').textContent = '✓ ' + t('wordsLoaded', state.lexiconCount.toLocaleString());
+        }
+        if (state.emojiCount !== null) {
+            document.getElementById('emoji-loaded').textContent = '✓ ' + t('emojisLoaded', state.emojiCount.toLocaleString());
+        }
+        if (state.lastResult !== null) {
+            displayResults(state.lastResult);
+        }
+        refreshSearch();
+    }
+
+    // ============================================================================
     // Application State
     // ============================================================================
 
     let vaderLexicon = {};
     let emojiLexicon = null;
     let lexiconStats = null;
+
+    const state = {
+        lastResult: null,
+        lexiconCount: null,
+        emojiCount: null
+    };
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit
 
@@ -94,23 +213,44 @@
 
     function getWordColor(type) {
         const colors = {
-            positive: 'bg-green-500 text-white',
-            negative: 'bg-red-500 text-white',
-            negated_positive: 'bg-orange-400 text-white',
-            negated_negative: 'bg-blue-400 text-white',
-            negation: 'bg-yellow-400 text-black',
-            booster: 'bg-purple-400 text-white',
-            neutral: 'bg-gray-300 text-gray-700'
+            positive: 'bg-green-600 text-white',
+            negative: 'bg-red-600 text-white',
+            negated_positive: 'bg-orange-500 text-white',
+            negated_negative: 'bg-teal-600 text-white',
+            negation: 'bg-amber-300 text-gray-900',
+            booster: 'bg-violet-500 text-white',
+            neutral: 'bg-gray-200 text-gray-700'
         };
         return colors[type] || colors.neutral;
     }
 
+    const LEGEND_TYPES = [
+        ['positive', 'legPositive'],
+        ['negative', 'legNegative'],
+        ['negated_positive', 'legNegatedPos'],
+        ['negated_negative', 'legNegatedNeg'],
+        ['negation', 'legNegation'],
+        ['booster', 'legBooster'],
+        ['neutral', 'legNeutral']
+    ];
+
+    function buildLegend() {
+        return el('div', { class: 'flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-600' },
+            LEGEND_TYPES.map(([type, key]) =>
+                el('span', { class: 'inline-flex items-center gap-1' }, [
+                    el('span', { class: 'inline-block w-3 h-3 rounded ' + getWordColor(type) }),
+                    el('span', { text: t(key) })
+                ])
+            )
+        );
+    }
+
     function getSentimentLabel(score) {
-        if (score >= 0.5) return { label: '強いポジティブ / Strong Positive', color: 'bg-green-700', icon: '😊' };
-        if (score >= 0.05) return { label: '弱いポジティブ / Weak Positive', color: 'bg-green-500', icon: '🙂' };
-        if (score > -0.05) return { label: '中立 / Neutral', color: 'bg-gray-500', icon: '😐' };
-        if (score > -0.5) return { label: '弱いネガティブ / Weak Negative', color: 'bg-red-500', icon: '🙁' };
-        return { label: '強いネガティブ / Strong Negative', color: 'bg-red-700', icon: '😞' };
+        if (score >= 0.5) return { label: t('strongPos'), color: 'bg-green-700' };
+        if (score >= 0.05) return { label: t('weakPos'), color: 'bg-green-600' };
+        if (score > -0.05) return { label: t('neutralLabel'), color: 'bg-gray-500' };
+        if (score > -0.5) return { label: t('weakNeg'), color: 'bg-red-600' };
+        return { label: t('strongNeg'), color: 'bg-red-700' };
     }
 
     function isSignificant(s) {
@@ -122,6 +262,7 @@
     // ============================================================================
 
     function displayResults(result) {
+        state.lastResult = result;
         const resultContainer = document.getElementById('result-container');
         resultContainer.classList.remove('hidden');
 
@@ -142,8 +283,8 @@
         const compoundDisplay = document.getElementById('compound-score-display');
         compoundDisplay.textContent = result.compound.toFixed(4);
         compoundDisplay.className = 'text-5xl font-bold mb-2 ' +
-            (result.compound >= 0.05 ? 'text-green-600' :
-            result.compound <= -0.05 ? 'text-red-600' : 'text-gray-600');
+            (result.compound >= 0.05 ? 'text-green-700' :
+            result.compound <= -0.05 ? 'text-red-700' : 'text-gray-600');
 
         const sentimentLabel = document.getElementById('sentiment-label');
         sentimentLabel.textContent = label.label;
@@ -151,7 +292,7 @@
 
         const punctInfo = document.getElementById('punct-emphasis');
         if (result.punctEmphasis > 0) {
-            punctInfo.textContent = '句読点による強調 / Punctuation emphasis (!, ?): +' + result.punctEmphasis.toFixed(3);
+            punctInfo.textContent = t('punct', result.punctEmphasis.toFixed(3));
             punctInfo.classList.remove('hidden');
         } else {
             punctInfo.classList.add('hidden');
@@ -174,6 +315,8 @@
             });
         }));
 
+        setChildren(document.getElementById('highlight-legend'), [buildLegend()]);
+
         // SECURITY: Safe rendering of token table
         const tokenTable = document.getElementById('token-table');
         const significantTokens = result.sentiments.filter(isSignificant);
@@ -184,7 +327,7 @@
                 stdDevCell.textContent = s.stdDev.toFixed(2);
                 const barBg = el('div', { class: 'w-full bg-gray-200 rounded-full h-2 mt-1' });
                 const bar = el('div', {
-                    class: 'bg-blue-600 h-2 rounded-full',
+                    class: 'bg-blue-700 h-2 rounded-full',
                     style: 'width: ' + Math.min(100, (s.stdDev / 3) * 100) + '%'
                 });
                 barBg.appendChild(bar);
@@ -213,37 +356,38 @@
         // SECURITY: Build all elements safely
         const elements = [];
 
-        elements.push(el('h2', { class: 'text-xl font-bold mb-4', text: '文ごとの分析結果 / Sentence-level Analysis Results' }));
+        elements.push(el('h2', { class: 'text-xl font-bold mb-4', text: t('sentenceResults') }));
 
         // Summary section
-        const summaryDiv = el('div', { class: 'mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-purple-200 rounded-lg p-6' }, [
-            el('h3', { class: 'text-lg font-bold mb-4 text-purple-900', text: '📈 全体の集計 / Overall Summary' }),
+        const summaryDiv = el('div', { class: 'mb-6 bg-blue-50 border border-blue-200 rounded-lg p-6' }, [
+            el('h3', { class: 'text-lg font-bold mb-4 text-blue-900', text: t('overallSummary') }),
             el('div', { class: 'grid grid-cols-2 md:grid-cols-4 gap-4' }, [
-                el('div', { class: 'bg-white rounded-lg p-4 text-center border-2 border-blue-300' }, [
-                    el('div', { class: 'text-sm text-gray-600 mb-1', text: '平均 / Average' }),
+                el('div', { class: 'bg-white rounded-lg p-4 text-center border border-gray-200' }, [
+                    el('div', { class: 'text-sm text-gray-600 mb-1', text: t('average') }),
                     el('div', {
-                        class: 'text-2xl font-bold ' + (avgCompound >= 0 ? 'text-green-600' : 'text-red-600'),
+                        class: 'text-2xl font-bold ' + (avgCompound >= 0 ? 'text-green-700' : 'text-red-700'),
                         text: avgCompound.toFixed(4)
                     })
                 ]),
-                el('div', { class: 'bg-white rounded-lg p-4 text-center border-2 border-gray-300' }, [
-                    el('div', { class: 'text-sm text-gray-600 mb-1', text: '総文数 / Total' }),
-                    el('div', { class: 'text-2xl font-bold text-gray-800', text: results.length + '文' })
+                el('div', { class: 'bg-white rounded-lg p-4 text-center border border-gray-200' }, [
+                    el('div', { class: 'text-sm text-gray-600 mb-1', text: t('totalSentences') }),
+                    el('div', { class: 'text-2xl font-bold text-gray-800', text: t('nSentences', results.length) })
                 ]),
-                el('div', { class: 'bg-white rounded-lg p-4 text-center border-2 border-green-300' }, [
-                    el('div', { class: 'text-sm text-gray-600 mb-1', text: 'ポジティブ / Positive' }),
-                    el('div', { class: 'text-xl font-bold text-green-600', text: posCount + '文' }),
+                el('div', { class: 'bg-white rounded-lg p-4 text-center border border-gray-200' }, [
+                    el('div', { class: 'text-sm text-gray-600 mb-1', text: t('positive') }),
+                    el('div', { class: 'text-xl font-bold text-green-700', text: t('nSentences', posCount) }),
                     el('div', { class: 'text-xs text-gray-500', text: '(' + ((posCount / results.length) * 100).toFixed(1) + '%)' })
                 ]),
-                el('div', { class: 'bg-white rounded-lg p-4 text-center border-2 border-red-300' }, [
-                    el('div', { class: 'text-sm text-gray-600 mb-1', text: 'ネガティブ / Negative' }),
-                    el('div', { class: 'text-xl font-bold text-red-600', text: negCount + '文' }),
+                el('div', { class: 'bg-white rounded-lg p-4 text-center border border-gray-200' }, [
+                    el('div', { class: 'text-sm text-gray-600 mb-1', text: t('negative') }),
+                    el('div', { class: 'text-xl font-bold text-red-700', text: t('nSentences', negCount) }),
                     el('div', { class: 'text-xs text-gray-500', text: '(' + ((negCount / results.length) * 100).toFixed(1) + '%)' })
                 ])
             ])
         ]);
 
         elements.push(summaryDiv);
+        elements.push(el('div', { class: 'mb-4' }, [buildLegend()]));
 
         // Individual sentence results
         results.forEach((result, i) => {
@@ -251,10 +395,10 @@
             const borderColor = result.compound >= 0.05 ? 'border-green-300' :
                                result.compound <= -0.05 ? 'border-red-300' : 'border-gray-300';
 
-            const sentenceDiv = el('div', { class: 'mb-6 bg-white rounded-lg border-2 ' + borderColor + ' p-5' }, [
+            const sentenceDiv = el('div', { class: 'mb-6 bg-white rounded-lg border ' + borderColor + ' p-5' }, [
                 el('div', { class: 'flex items-start justify-between mb-3' }, [
                     el('div', { class: 'flex-1' }, [
-                        el('div', { class: 'text-lg font-bold text-gray-800 mb-2', text: label.icon + ' 文' + (i + 1) + ' / Sentence ' + (i + 1) }),
+                        el('div', { class: 'text-lg font-bold text-gray-800 mb-2', text: t('sentenceN', i + 1) }),
                         el('div', { class: 'text-base text-gray-700 italic mb-3 bg-gray-50 p-3 rounded', text: '"' + result.originalText + '"' })
                     ]),
                     el('span', {
@@ -263,24 +407,24 @@
                     })
                 ]),
                 el('div', { class: 'grid grid-cols-3 gap-3 mb-4' }, [
-                    el('div', { class: 'border rounded p-2 text-center bg-green-50' }, [
-                        el('div', { class: 'text-xs text-gray-600 mb-1', text: 'ポジティブ / Positive' }),
-                        el('div', { class: 'text-lg font-bold text-green-600', text: (result.pos * 100).toFixed(1) + '%' })
+                    el('div', { class: 'border border-gray-200 rounded p-2 text-center bg-green-50' }, [
+                        el('div', { class: 'text-xs text-gray-600 mb-1', text: t('positive') }),
+                        el('div', { class: 'text-lg font-bold text-green-700', text: (result.pos * 100).toFixed(1) + '%' })
                     ]),
-                    el('div', { class: 'border rounded p-2 text-center bg-gray-50' }, [
-                        el('div', { class: 'text-xs text-gray-600 mb-1', text: '中立 / Neutral' }),
+                    el('div', { class: 'border border-gray-200 rounded p-2 text-center bg-gray-50' }, [
+                        el('div', { class: 'text-xs text-gray-600 mb-1', text: t('neutral') }),
                         el('div', { class: 'text-lg font-bold text-gray-600', text: (result.neu * 100).toFixed(1) + '%' })
                     ]),
-                    el('div', { class: 'border rounded p-2 text-center bg-red-50' }, [
-                        el('div', { class: 'text-xs text-gray-600 mb-1', text: 'ネガティブ / Negative' }),
-                        el('div', { class: 'text-lg font-bold text-red-600', text: (result.neg * 100).toFixed(1) + '%' })
+                    el('div', { class: 'border border-gray-200 rounded p-2 text-center bg-red-50' }, [
+                        el('div', { class: 'text-xs text-gray-600 mb-1', text: t('negative') }),
+                        el('div', { class: 'text-lg font-bold text-red-700', text: (result.neg * 100).toFixed(1) + '%' })
                     ])
                 ]),
                 result.punctEmphasis > 0
-                    ? el('p', { class: 'text-xs text-gray-600 mb-3', text: '句読点による強調 / Punctuation emphasis (!, ?): +' + result.punctEmphasis.toFixed(3) })
+                    ? el('p', { class: 'text-xs text-gray-600 mb-3', text: t('punct', result.punctEmphasis.toFixed(3)) })
                     : null,
                 el('div', { class: 'mb-4' }, [
-                    el('h4', { class: 'font-semibold text-sm mb-2', text: '感情表現のハイライト / Sentiment Highlights' }),
+                    el('h4', { class: 'font-semibold text-sm mb-2', text: t('highlights') }),
                     el('div', { class: 'bg-gray-50 p-3 rounded leading-relaxed' },
                         result.sentiments.map(s => el('span', {
                             class: 'inline-block px-2 py-1 m-1 rounded text-sm ' + getWordColor(s.type),
@@ -295,16 +439,16 @@
 
             if (significantTokens.length > 0) {
                 const tableDiv = el('div', {}, [
-                    el('h4', { class: 'font-semibold text-sm mb-2', text: '詳細単語分析 / Detailed Token Analysis' }),
+                    el('h4', { class: 'font-semibold text-sm mb-2', text: t('tokenAnalysis') }),
                     el('div', { class: 'overflow-x-auto' }, [
                         el('table', { class: 'w-full border-collapse text-xs' }, [
                             el('thead', {}, [
                                 el('tr', { class: 'bg-gray-100' }, [
-                                    el('th', { class: 'border p-2 text-left', text: '単語' }),
-                                    el('th', { class: 'border p-2', text: '元スコア' }),
-                                    el('th', { class: 'border p-2', text: '調整後' }),
-                                    el('th', { class: 'border p-2 text-left', text: '調整内容' }),
-                                    el('th', { class: 'border p-2', text: '標準偏差' })
+                                    el('th', { class: 'border p-2 text-left', text: t('thToken') }),
+                                    el('th', { class: 'border p-2', text: t('thOriginal') }),
+                                    el('th', { class: 'border p-2', text: t('thAdjusted') }),
+                                    el('th', { class: 'border p-2 text-left', text: t('thAdjustments') }),
+                                    el('th', { class: 'border p-2', text: t('thStdDev') })
                                 ])
                             ]),
                             el('tbody', {}, significantTokens.map(s => {
@@ -358,14 +502,14 @@
         setChildren(chartContainer, entries.map(([score, count]) => {
             const height = (count / maxCount) * 100;
             const numScore = parseFloat(score);
-            const color = numScore > 0 ? 'bg-green-500' : numScore < 0 ? 'bg-red-500' : 'bg-gray-400';
+            const color = numScore > 0 ? 'bg-green-600' : numScore < 0 ? 'bg-red-600' : 'bg-gray-400';
 
             return el('div', { class: 'flex-1 flex flex-col items-center', style: 'height: 100%' }, [
                 el('div', { class: 'w-full flex items-end justify-center', style: 'height: 100%' }, [
                     el('div', {
                         class: 'chart-bar w-full ' + color + ' rounded-t transition-all hover:opacity-80',
                         style: 'height: ' + height + '%',
-                        title: score + ': ' + count + '単語'
+                        title: score + ': ' + count
                     })
                 ])
             ]);
@@ -392,7 +536,7 @@
         // SECURITY: Safe rendering
         const topPositiveContainer = document.getElementById('top-positive');
         setChildren(topPositiveContainer, topPositive.map(t => {
-            return el('div', { class: 'border rounded p-2 bg-green-50' }, [
+            return el('div', { class: 'border border-gray-200 rounded p-2 bg-green-50' }, [
                 el('div', { class: 'font-semibold text-sm break-all', text: t.token }),
                 el('div', { class: 'text-green-700 font-bold', text: t.score.toFixed(2) })
             ]);
@@ -400,7 +544,7 @@
 
         const topNegativeContainer = document.getElementById('top-negative');
         setChildren(topNegativeContainer, topNegative.map(t => {
-            return el('div', { class: 'border rounded p-2 bg-red-50' }, [
+            return el('div', { class: 'border border-gray-200 rounded p-2 bg-red-50' }, [
                 el('div', { class: 'font-semibold text-sm break-all', text: t.token }),
                 el('div', { class: 'text-red-700 font-bold', text: t.score.toFixed(2) })
             ]);
@@ -414,12 +558,12 @@
 
         const highStdDevContainer = document.getElementById('high-stddev');
         setChildren(highStdDevContainer, highStdDev.map(t => {
-            return el('div', { class: 'border rounded p-2 bg-yellow-50' }, [
+            return el('div', { class: 'border border-gray-200 rounded p-2 bg-amber-50' }, [
                 el('div', { class: 'font-semibold text-sm break-all', text: t.token }),
                 el('div', { class: 'text-xs' }, [
                     el('span', { class: 'text-gray-700', text: 'Score: ' + t.score.toFixed(2) }),
                     document.createElement('br'),
-                    el('span', { class: 'text-yellow-700 font-bold', text: 'σ: ' + t.stdDev.toFixed(2) })
+                    el('span', { class: 'text-amber-700 font-bold', text: 'σ: ' + t.stdDev.toFixed(2) })
                 ])
             ]);
         }));
@@ -432,11 +576,11 @@
     function validateFile(file) {
         // SECURITY: File validation
         if (!file.name.endsWith('.txt')) {
-            showNotification('テキストファイル(.txt)をアップロードしてください / Please upload a text file (.txt)', 'error');
+            showNotification(t('txtOnly'), 'error');
             return false;
         }
         if (file.size > MAX_FILE_SIZE) {
-            showNotification('ファイルが大きすぎます（上限10MB）/ File too large (max 10MB)', 'error');
+            showNotification(t('tooLarge'), 'error');
             return false;
         }
         return true;
@@ -452,20 +596,21 @@
             const result = VADER.parseLexicon(text);
 
             if (result.stats.total === 0) {
-                showNotification('レキシコンとして読み込める行がありませんでした / No valid lexicon entries found', 'error');
+                showNotification(t('lexiconEmpty'), 'error');
                 return;
             }
 
             vaderLexicon = result.lexicon;
             lexiconStats = result.stats;
+            state.lexiconCount = result.stats.total;
 
-            document.getElementById('lexicon-loaded').textContent = '✓ ' + result.stats.total.toLocaleString() + ' 単語を読み込みました / ' + result.stats.total.toLocaleString() + ' words loaded';
+            document.getElementById('lexicon-loaded').textContent = '✓ ' + t('wordsLoaded', result.stats.total.toLocaleString());
             document.getElementById('lexicon-loaded').classList.remove('hidden');
 
             displayStatistics();
-            showNotification(result.stats.total.toLocaleString() + ' 単語を読み込みました / ' + result.stats.total.toLocaleString() + ' words loaded', 'success');
+            showNotification(t('wordsLoaded', result.stats.total.toLocaleString()), 'success');
         } catch (error) {
-            showNotification('ファイルの読み込みに失敗しました / Failed to load file', 'error');
+            showNotification(t('loadFailed'), 'error');
             console.error(error);
         }
     });
@@ -480,13 +625,14 @@
             const result = VADER.parseEmojiLexicon(text);
 
             emojiLexicon = result.lexicon;
+            state.emojiCount = result.count;
 
-            document.getElementById('emoji-loaded').textContent = '✓ ' + result.count.toLocaleString() + ' 個の絵文字マッピングを読み込みました / ' + result.count.toLocaleString() + ' emoji mappings loaded';
+            document.getElementById('emoji-loaded').textContent = '✓ ' + t('emojisLoaded', result.count.toLocaleString());
             document.getElementById('emoji-loaded').classList.remove('hidden');
 
-            showNotification(result.count.toLocaleString() + ' 個の絵文字マッピングを読み込みました / ' + result.count.toLocaleString() + ' emoji mappings loaded', 'success');
+            showNotification(t('emojisLoaded', result.count.toLocaleString()), 'success');
         } catch (error) {
-            showNotification('絵文字ファイルの読み込みに失敗しました / Failed to load emoji file', 'error');
+            showNotification(t('emojiLoadFailed'), 'error');
             console.error(error);
         }
     });
@@ -494,11 +640,11 @@
     document.getElementById('analyze-btn').addEventListener('click', function () {
         const text = document.getElementById('text-input').value.trim();
         if (!text) {
-            showNotification('分析するテキストを入力してください / Please enter text to analyze', 'error');
+            showNotification(t('enterText'), 'error');
             return;
         }
         if (Object.keys(vaderLexicon).length === 0) {
-            showNotification('まずレキシコンファイルを読み込んでください / Please load the lexicon file first', 'error');
+            showNotification(t('loadLexiconFirst'), 'error');
             return;
         }
 
@@ -507,7 +653,7 @@
         if (splitBySentence) {
             const sentences = VADER.splitIntoSentences(text);
             if (sentences.length === 0) {
-                showNotification('有効な文が見つかりませんでした / No valid sentences found', 'error');
+                showNotification(t('noSentences'), 'error');
                 return;
             }
 
@@ -535,10 +681,10 @@
             const tab = btn.dataset.tab;
 
             document.querySelectorAll('.tab-btn').forEach(b => {
-                b.classList.remove('border-blue-600', 'text-blue-600');
+                b.classList.remove('border-blue-700', 'text-blue-700', 'border-b-2');
                 b.classList.add('text-gray-500');
             });
-            btn.classList.add('border-blue-600', 'text-blue-600');
+            btn.classList.add('border-blue-700', 'text-blue-700', 'border-b-2');
             btn.classList.remove('text-gray-500');
 
             document.querySelectorAll('.tab-content').forEach(content => {
@@ -548,14 +694,18 @@
         });
     });
 
+    document.querySelectorAll('[data-lang-btn]').forEach(btn => {
+        btn.addEventListener('click', () => applyLanguage(btn.dataset.langBtn));
+    });
+
     // Debounced search input for performance
-    const performSearch = debounce(function (e) {
-        const query = e.target.value.toLowerCase().trim();
+    function renderSearch() {
+        const query = document.getElementById('search-input').value.toLowerCase().trim();
         const resultsDiv = document.getElementById('search-results');
 
         if (query.length < 1) {
             setChildren(resultsDiv, [
-                el('div', { class: 'p-8 text-center text-gray-500', text: 'キーワードを入力してください / Enter keywords to search' })
+                el('div', { class: 'p-8 text-center text-gray-500', text: t('searchPrompt') })
             ]);
             return;
         }
@@ -566,14 +716,14 @@
 
         if (matches.length === 0) {
             setChildren(resultsDiv, [
-                el('div', { class: 'p-8 text-center text-gray-500', text: '検索結果がありません / No results found' })
+                el('div', { class: 'p-8 text-center text-gray-500', text: t('noResults') })
             ]);
             return;
         }
 
         // SECURITY: Safe rendering of search results
         setChildren(resultsDiv, matches.map(([token, data]) => {
-            const scoreColor = data.score > 0 ? 'text-green-600' : data.score < 0 ? 'text-red-600' : 'text-gray-600';
+            const scoreColor = data.score > 0 ? 'text-green-700' : data.score < 0 ? 'text-red-700' : 'text-gray-600';
 
             return el('div', { class: 'border-b p-3 flex justify-between items-center hover:bg-gray-50' }, [
                 el('span', { class: 'font-semibold', text: token }),
@@ -583,7 +733,17 @@
                 ])
             ]);
         }));
-    }, 300);
+    }
 
-    document.getElementById('search-input').addEventListener('input', performSearch);
+    function refreshSearch() {
+        // Re-render search results (or prompt) in the current language
+        if (document.getElementById('search-input').value.trim() || state.lexiconCount !== null) {
+            renderSearch();
+        }
+    }
+
+    document.getElementById('search-input').addEventListener('input', debounce(renderSearch, 300));
+
+    // Apply saved language on startup
+    applyLanguage(currentLang);
 })();

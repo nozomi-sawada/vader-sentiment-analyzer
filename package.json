@@ -9,6 +9,10 @@
   },
   "scripts": {
     "test": "node test/run-tests.js",
-    "fixtures": "bash test/fetch-fixtures.sh"
+    "fixtures": "bash test/fetch-fixtures.sh",
+    "build:css": "tailwindcss -c tailwind.config.js -i tailwind.input.css -o tailwind.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
   }
 }

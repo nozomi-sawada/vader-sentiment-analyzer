@@ -13,10 +13,13 @@
 
 This tool is a browser-based implementation of the VADER (Valence Aware Dictionary and sEntiment Reasoner) sentiment analysis algorithm (Hutto & Gilbert, 2014). The analysis engine is a port of the reference Python implementation (vaderSentiment 3.3.2), and automated tests check that its output matches the reference. It is intended for researchers and educators who want to understand and apply lexicon- and rule-based sentiment analysis.
 
+![Analysis result screen](docs/images/screenshot-analysis.png)
+
 ## Key Features
 
 - **Browser-based** - No installation or server required
-- **Offline capable** - Works offline after loading lexicon files
+- **Offline capable** - No external dependencies; works offline after loading lexicon files
+- **Japanese / English UI** - Switch the interface language with one click
 - **Rule-based** - Lexicon and rule-based scoring; every adjustment is shown to the user
 - **Emoji support** - Analyzes emojis by converting them to text descriptions (optional)
 - **Per-word detail** - Shows the score adjustment process for each word
@@ -38,13 +41,14 @@ https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/vader_lexic
 https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/emoji_utf8_lexicon.txt
 ```
 
-Tip: Click the "Raw" button on GitHub, then right-click and "Save As"
+> [!TIP]
+> Click the "Raw" button on GitHub, then right-click and "Save As".
 
 ### 2. Run the Tool
 
-1. Open `index.html` in your browser (keep `vader.js` and `app.js` in the same folder)
-2. Upload the lexicon file(s)
-3. Enter text and click "Analyze"
+1. Download this repository ("Code" → "Download ZIP", then extract) or clone it
+2. Open `index.html` in your browser
+3. Upload the lexicon file(s), enter text, and click "Analyze"
 
 ### 3. Choose Analysis Mode
 
@@ -91,7 +95,8 @@ This normalization ensures that:
 | -0.05 < score < 0.05 | Neutral | Emotionally neutral text |
 | score ≤ -0.05 | Negative | Text containing negative sentiment |
 
-**Note:** These thresholds were optimized for general social media text. Threshold adjustment may be necessary depending on domain and research objectives.
+> [!NOTE]
+> These thresholds were optimized for general social media text. Threshold adjustment may be necessary depending on domain and research objectives.
 
 **Important Note: Difference from VADER Paper**
 
@@ -165,11 +170,17 @@ suite (see [Testing](#testing)):
 ### Project Structure
 
 ```
-index.html   – markup only (no inline scripts)
-vader.js     – the VADER algorithm (browser + Node.js)
-app.js       – UI layer (file loading, rendering, events)
-test/        – golden tests against the reference Python implementation
+index.html          – markup only (no inline scripts)
+vader.js            – the VADER algorithm (browser + Node.js)
+app.js              – UI layer (file loading, rendering, language toggle, events)
+tailwind.css        – pre-built stylesheet (regenerate with: npm run build:css)
+tailwind.input.css  – stylesheet source
+test/               – golden tests against the reference Python implementation
 ```
+
+The stylesheet is committed pre-built, so the app runs without any build step.
+After changing CSS classes in `index.html` or `app.js`, regenerate it with
+`npm install && npm run build:css`.
 
 ### Testing
 
@@ -283,7 +294,7 @@ The tool takes the following precautions for running in the browser:
 
 ### Content Security Policy (CSP)
 
-The tool uses CSP headers to restrict script execution, styles, network connections, and frame embedding.
+The page sets a Content Security Policy of `script-src 'self'; style-src 'self'` — only scripts and styles from the same folder can run, and no external resources (CDNs, fonts, analytics) are loaded.
 
 ## Academic Usage Guide
 
@@ -356,7 +367,8 @@ For more detailed information, see the `docs/` folder:
 
 This tool is released under the MIT License.
 
-**Important:** VADER lexicon files are distributed in the [original repository](https://github.com/cjhutto/vaderSentiment). This tool does not include the lexicon files. Users must download them separately to comply with licensing requirements.
+> [!IMPORTANT]
+> VADER lexicon files are distributed in the [original repository](https://github.com/cjhutto/vaderSentiment). This tool does not include the lexicon files. Users must download them separately to comply with licensing requirements.
 
 ## Acknowledgments
 
