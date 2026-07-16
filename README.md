@@ -14,7 +14,7 @@
 
 This tool is a browser-based implementation of the VADER (Valence Aware Dictionary and sEntiment Reasoner) sentiment analysis algorithm (Hutto & Gilbert, 2014). The analysis engine is a port of the reference Python implementation (vaderSentiment 3.3.2), and automated tests check that its output matches the reference. It is intended for researchers and educators who want to understand and apply lexicon- and rule-based sentiment analysis.
 
-![Analysis result screen](docs/images/screenshot-analysis.png)
+![Analysis result screen](docs/images/screenshot-analysis-en.png)
 
 ## Key Features
 
@@ -33,9 +33,11 @@ This tool is a browser-based implementation of the VADER (Valence Aware Dictiona
 
 ### Run the Tool
 
-1. Download this repository ("Code" → "Download ZIP", then extract) or clone it, and serve/open `index.html`
-2. The bundled VADER lexicon and emoji lexicon load automatically
+1. Download this repository ("Code" → "Download ZIP", then extract) or clone it
+2. Open `index.html` in your browser — the bundled VADER lexicon and emoji lexicon load automatically
 3. Enter text and click "Analyze"
+
+The interface opens in Japanese by default; use the **English** button in the top-right corner to switch (the choice is remembered).
 
 > [!NOTE]
 > Automatic loading requires the page to be served over HTTP (e.g. GitHub Pages or a local web server). If you open `index.html` directly from your file system, load the lexicon files manually via the buttons on the page — they are in `third_party/vaderSentiment/`.
