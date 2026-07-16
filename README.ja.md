@@ -1,5 +1,6 @@
 # VADER感情分析ツール
 
+[![tests](https://github.com/nozomi-sawada/vader-sentiment-analyzer/actions/workflows/test.yml/badge.svg)](https://github.com/nozomi-sawada/vader-sentiment-analyzer/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![VADER](https://img.shields.io/badge/VADER-Hutto%20%26%20Gilbert%202014-green)](https://github.com/cjhutto/vaderSentiment)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
@@ -258,6 +259,7 @@ Hutto & Gilbert (2014) は以下のデータセットでVADERの性能を検証�
 2. **ドメイン依存性** - ソーシャルメディアテキストに最適化、フォーマルな文章では精度が低下する可能性
 3. **文脈理解の限界** - 皮肉や反語の検出能力には限界
 4. **時間的変化** - レキシコンは2014年時点の評価に基づく、新しいスラングには対応していない可能性
+5. **複数コードポイントの絵文字** - 肌の色付き（👍🏽）や家族などの結合絵文字（👨‍👩‍👧）は絵文字レキシコンにマッチしません。これは本家Python実装と同一の挙動です
 
 ## ブラウザ互換性
 

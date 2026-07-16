@@ -1,5 +1,6 @@
 # VADER-based Sentiment Analysis Tool
 
+[![tests](https://github.com/nozomi-sawada/vader-sentiment-analyzer/actions/workflows/test.yml/badge.svg)](https://github.com/nozomi-sawada/vader-sentiment-analyzer/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![VADER](https://img.shields.io/badge/VADER-Hutto%20%26%20Gilbert%202014-green)](https://github.com/cjhutto/vaderSentiment)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
@@ -267,6 +268,7 @@ Researchers should be aware of the following limitations:
 2. **Domain dependency** - Optimized for social media; may have reduced accuracy on formal text
 3. **Contextual understanding** - Limited ability to detect sarcasm or irony
 4. **Temporal changes** - Lexicon based on 2014 ratings; may not cover newer slang
+5. **Multi-codepoint emojis** - Emojis composed of multiple code points (skin-tone variants such as 👍🏽, combined family emojis such as 👨‍👩‍👧) are not matched by the emoji lexicon. This matches the behavior of the reference Python implementation
 
 ## Browser Compatibility
 

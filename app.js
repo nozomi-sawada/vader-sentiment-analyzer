@@ -165,8 +165,8 @@
 
         document.querySelectorAll('[data-lang-btn]').forEach(btn => {
             const active = btn.dataset.langBtn === lang;
-            btn.className = 'px-3 py-1.5 font-semibold ' +
-                (active ? 'bg-blue-700 text-white' : 'bg-white text-gray-600 hover:bg-gray-100');
+            btn.className = 'px-3 py-1 rounded-full text-sm font-medium transition ' +
+                (active ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900');
         });
 
         document.getElementById('search-input').placeholder = t('searchPlaceholder');
@@ -220,6 +220,10 @@
             const result = VADER.parseLexicon(await lexRes.text());
             if (result.stats.total === 0) throw new Error('empty lexicon');
 
+            // If the user already loaded a lexicon manually while the fetch
+            // was in flight, keep their choice.
+            if (state.lexiconCount !== null) return;
+
             vaderLexicon = result.lexicon;
             lexiconStats = result.stats;
             state.lexiconCount = result.stats.total;
@@ -227,9 +231,9 @@
 
             try {
                 const emoRes = await fetch('third_party/vaderSentiment/emoji_utf8_lexicon.txt');
-                if (emoRes.ok) {
+                if (emoRes.ok && state.emojiCount === null) {
                     const er = VADER.parseEmojiLexicon(await emoRes.text());
-                    if (er.count > 0) {
+                    if (er.count > 0 && state.emojiCount === null) {
                         emojiLexicon = er.lexicon;
                         state.emojiCount = er.count;
                         state.emojiBundled = true;
@@ -256,13 +260,26 @@
     function showNotification(message, type) {
         const notification = document.getElementById('notification');
         notification.textContent = message;
-        notification.className = 'mb-4 p-4 rounded ' + (
-            type === 'success' ? 'bg-green-100 text-green-800' :
-            type === 'error' ? 'bg-red-100 text-red-800' :
-            'bg-blue-100 text-blue-800'
+        notification.className = 'mb-4 p-4 rounded-xl text-sm ' + (
+            type === 'success' ? 'bg-green-50 ring-1 ring-green-200 text-green-800' :
+            type === 'error' ? 'bg-red-50 ring-1 ring-red-200 text-red-800' :
+            'bg-blue-50 ring-1 ring-blue-200 text-blue-800'
         );
         notification.classList.remove('hidden');
         setTimeout(() => notification.classList.add('hidden'), 5000);
+    }
+
+    const TAB_ACTIVE = 'tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-white text-slate-900 shadow-sm';
+    const TAB_INACTIVE = 'tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition text-slate-500 hover:text-slate-900';
+
+    function activateTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.className = b.dataset.tab === tab ? TAB_ACTIVE : TAB_INACTIVE;
+        });
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.add('hidden');
+        });
+        document.getElementById(tab + '-tab').classList.remove('hidden');
     }
 
     function getWordColor(type) {
@@ -271,9 +288,9 @@
             negative: 'bg-red-600 text-white',
             negated_positive: 'bg-orange-500 text-white',
             negated_negative: 'bg-teal-600 text-white',
-            negation: 'bg-amber-300 text-gray-900',
+            negation: 'bg-amber-300 text-slate-900',
             booster: 'bg-violet-500 text-white',
-            neutral: 'bg-gray-200 text-gray-700'
+            neutral: 'bg-slate-200 text-slate-700'
         };
         return colors[type] || colors.neutral;
     }
@@ -289,7 +306,7 @@
     ];
 
     function buildLegend() {
-        return el('div', { class: 'flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-600' },
+        return el('div', { class: 'flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500' },
             LEGEND_TYPES.map(([type, key]) =>
                 el('span', { class: 'inline-flex items-center gap-1' }, [
                     el('span', { class: 'inline-block w-3 h-3 rounded ' + getWordColor(type) }),
@@ -336,13 +353,13 @@
 
         const compoundDisplay = document.getElementById('compound-score-display');
         compoundDisplay.textContent = result.compound.toFixed(4);
-        compoundDisplay.className = 'text-5xl font-bold mb-2 ' +
+        compoundDisplay.className = 'text-4xl sm:text-6xl font-bold tabular-nums tracking-tight mb-3 ' +
             (result.compound >= 0.05 ? 'text-green-700' :
-            result.compound <= -0.05 ? 'text-red-700' : 'text-gray-600');
+            result.compound <= -0.05 ? 'text-red-700' : 'text-slate-600');
 
         const sentimentLabel = document.getElementById('sentiment-label');
         sentimentLabel.textContent = label.label;
-        sentimentLabel.className = 'inline-block px-4 py-2 rounded text-white text-base font-semibold ' + label.color;
+        sentimentLabel.className = 'inline-block px-4 py-1.5 rounded-full text-white text-sm font-semibold ' + label.color;
 
         const punctInfo = document.getElementById('punct-emphasis');
         if (result.punctEmphasis > 0) {
@@ -352,8 +369,11 @@
             punctInfo.classList.add('hidden');
         }
 
-        const bar = document.getElementById('sentiment-bar');
-        bar.style.width = ((result.compound + 1) / 2) * 100 + '%';
+        const marker = document.getElementById('sentiment-marker');
+        marker.style.left = (((result.compound + 1) / 2) * 100) + '%';
+        marker.className = 'sentiment-marker absolute -top-1.5 h-5 w-5 -ml-2.5 rounded-full bg-white shadow ring-4 ' +
+            (result.compound >= 0.05 ? 'ring-green-600' :
+             result.compound <= -0.05 ? 'ring-red-600' : 'ring-slate-400');
 
         document.getElementById('pos-score').textContent = (result.pos * 100).toFixed(1) + '%';
         document.getElementById('neu-score').textContent = (result.neu * 100).toFixed(1) + '%';
@@ -363,7 +383,7 @@
         const highlightedText = document.getElementById('highlighted-text');
         setChildren(highlightedText, result.sentiments.map(s => {
             return el('span', {
-                class: 'inline-block px-2 py-1 m-1 rounded ' + getWordColor(s.type),
+                class: 'inline-block px-2 py-0.5 m-0.5 rounded-md ' + getWordColor(s.type),
                 title: 'Score: ' + s.adjustedScore.toFixed(2),
                 text: s.token // Safe: textContent
             });
@@ -376,12 +396,12 @@
         const significantTokens = result.sentiments.filter(isSignificant);
 
         setChildren(tokenTable, significantTokens.map(s => {
-            const stdDevCell = el('td', { class: 'border p-2' });
+            const stdDevCell = el('td', { class: 'p-3 text-center tabular-nums' });
             if (s.stdDev) {
                 stdDevCell.textContent = s.stdDev.toFixed(2);
-                const barBg = el('div', { class: 'w-full bg-gray-200 rounded-full h-2 mt-1' });
+                const barBg = el('div', { class: 'w-full bg-slate-200 rounded-full h-1.5 mt-1' });
                 const bar = el('div', {
-                    class: 'bg-blue-700 h-2 rounded-full',
+                    class: 'bg-blue-600 h-1.5 rounded-full',
                     style: 'width: ' + Math.min(100, (s.stdDev / 3) * 100) + '%'
                 });
                 barBg.appendChild(bar);
@@ -390,11 +410,11 @@
                 stdDevCell.textContent = '-';
             }
 
-            return el('tr', { class: 'hover:bg-gray-50' }, [
-                el('td', { class: 'border p-2 font-semibold', text: s.token }),
-                el('td', { class: 'border p-2 text-center', text: s.score.toFixed(2) }),
-                el('td', { class: 'border p-2 text-center font-semibold', text: s.adjustedScore.toFixed(2) }),
-                el('td', { class: 'border p-2', text: (s.adjustments && s.adjustments.length > 0) ? s.adjustments.join(', ') : '-' }),
+            return el('tr', { class: 'hover:bg-slate-50' }, [
+                el('td', { class: 'p-3 font-semibold', text: s.token }),
+                el('td', { class: 'p-3 text-center tabular-nums', text: s.score.toFixed(2) }),
+                el('td', { class: 'p-3 text-center tabular-nums font-semibold', text: s.adjustedScore.toFixed(2) }),
+                el('td', { class: 'p-3 text-slate-600', text: (s.adjustments && s.adjustments.length > 0) ? s.adjustments.join(', ') : '-' }),
                 stdDevCell
             ]);
         }));
@@ -413,29 +433,29 @@
         elements.push(el('h2', { class: 'text-xl font-bold mb-4', text: t('sentenceResults') }));
 
         // Summary section
-        const summaryDiv = el('div', { class: 'mb-6 bg-blue-50 border border-blue-200 rounded-lg p-6' }, [
+        const summaryDiv = el('div', { class: 'mb-6 bg-blue-50/60 ring-1 ring-blue-100 rounded-xl p-5' }, [
             el('h3', { class: 'text-lg font-bold mb-4 text-blue-900', text: t('overallSummary') }),
-            el('div', { class: 'grid grid-cols-2 md:grid-cols-4 gap-4' }, [
-                el('div', { class: 'bg-white rounded-lg p-4 text-center border border-gray-200' }, [
-                    el('div', { class: 'text-sm text-gray-600 mb-1', text: t('average') }),
+            el('div', { class: 'grid grid-cols-2 md:grid-cols-4 gap-3' }, [
+                el('div', { class: 'bg-white rounded-xl p-4 text-center ring-1 ring-slate-200' }, [
+                    el('div', { class: 'text-xs text-slate-500 mb-1', text: t('average') }),
                     el('div', {
-                        class: 'text-2xl font-bold ' + (avgCompound >= 0 ? 'text-green-700' : 'text-red-700'),
+                        class: 'text-xl font-bold tabular-nums ' + (avgCompound >= 0 ? 'text-green-700' : 'text-red-700'),
                         text: avgCompound.toFixed(4)
                     })
                 ]),
-                el('div', { class: 'bg-white rounded-lg p-4 text-center border border-gray-200' }, [
-                    el('div', { class: 'text-sm text-gray-600 mb-1', text: t('totalSentences') }),
-                    el('div', { class: 'text-2xl font-bold text-gray-800', text: t('nSentences', results.length) })
+                el('div', { class: 'bg-white rounded-xl p-4 text-center ring-1 ring-slate-200' }, [
+                    el('div', { class: 'text-xs text-slate-500 mb-1', text: t('totalSentences') }),
+                    el('div', { class: 'text-xl font-bold tabular-nums text-slate-800', text: t('nSentences', results.length) })
                 ]),
-                el('div', { class: 'bg-white rounded-lg p-4 text-center border border-gray-200' }, [
-                    el('div', { class: 'text-sm text-gray-600 mb-1', text: t('positive') }),
-                    el('div', { class: 'text-xl font-bold text-green-700', text: t('nSentences', posCount) }),
-                    el('div', { class: 'text-xs text-gray-500', text: '(' + ((posCount / results.length) * 100).toFixed(1) + '%)' })
+                el('div', { class: 'bg-white rounded-xl p-4 text-center ring-1 ring-slate-200' }, [
+                    el('div', { class: 'text-xs text-slate-500 mb-1', text: t('positive') }),
+                    el('div', { class: 'text-xl font-bold tabular-nums text-green-700', text: t('nSentences', posCount) }),
+                    el('div', { class: 'text-xs text-slate-500 tabular-nums', text: '(' + ((posCount / results.length) * 100).toFixed(1) + '%)' })
                 ]),
-                el('div', { class: 'bg-white rounded-lg p-4 text-center border border-gray-200' }, [
-                    el('div', { class: 'text-sm text-gray-600 mb-1', text: t('negative') }),
-                    el('div', { class: 'text-xl font-bold text-red-700', text: t('nSentences', negCount) }),
-                    el('div', { class: 'text-xs text-gray-500', text: '(' + ((negCount / results.length) * 100).toFixed(1) + '%)' })
+                el('div', { class: 'bg-white rounded-xl p-4 text-center ring-1 ring-slate-200' }, [
+                    el('div', { class: 'text-xs text-slate-500 mb-1', text: t('negative') }),
+                    el('div', { class: 'text-xl font-bold tabular-nums text-red-700', text: t('nSentences', negCount) }),
+                    el('div', { class: 'text-xs text-slate-500 tabular-nums', text: '(' + ((negCount / results.length) * 100).toFixed(1) + '%)' })
                 ])
             ])
         ]);
@@ -446,32 +466,32 @@
         // Individual sentence results
         results.forEach((result, i) => {
             const label = getSentimentLabel(result.compound);
-            const borderColor = result.compound >= 0.05 ? 'border-green-300' :
-                               result.compound <= -0.05 ? 'border-red-300' : 'border-gray-300';
+            const ringColor = result.compound >= 0.05 ? 'ring-green-200' :
+                               result.compound <= -0.05 ? 'ring-red-200' : 'ring-slate-200';
 
-            const sentenceDiv = el('div', { class: 'mb-6 bg-white rounded-lg border ' + borderColor + ' p-5' }, [
-                el('div', { class: 'flex items-start justify-between mb-3' }, [
+            const sentenceDiv = el('div', { class: 'mb-5 bg-white rounded-xl ring-1 ' + ringColor + ' p-5' }, [
+                el('div', { class: 'flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3' }, [
                     el('div', { class: 'flex-1' }, [
-                        el('div', { class: 'text-lg font-bold text-gray-800 mb-2', text: t('sentenceN', i + 1) }),
-                        el('div', { class: 'text-base text-gray-700 italic mb-3 bg-gray-50 p-3 rounded', text: '"' + result.originalText + '"' })
+                        el('div', { class: 'text-base font-bold text-slate-800 mb-2', text: t('sentenceN', i + 1) }),
+                        el('div', { class: 'text-sm text-slate-700 italic mb-1 bg-slate-50 p-3 rounded-lg', text: '"' + result.originalText + '"' })
                     ]),
                     el('span', {
-                        class: 'ml-4 px-3 py-1 rounded text-white text-sm font-semibold whitespace-nowrap ' + label.color,
+                        class: 'sm:ml-4 self-start px-3 py-1 rounded-full text-white text-xs font-semibold whitespace-nowrap tabular-nums ' + label.color,
                         text: label.label + ' ' + result.compound.toFixed(4)
                     })
                 ]),
-                el('div', { class: 'grid grid-cols-3 gap-3 mb-4' }, [
-                    el('div', { class: 'border border-gray-200 rounded p-2 text-center bg-green-50' }, [
-                        el('div', { class: 'text-xs text-gray-600 mb-1', text: t('positive') }),
-                        el('div', { class: 'text-lg font-bold text-green-700', text: (result.pos * 100).toFixed(1) + '%' })
+                el('div', { class: 'grid grid-cols-3 gap-2 mb-4' }, [
+                    el('div', { class: 'rounded-lg p-2 text-center bg-green-50' }, [
+                        el('div', { class: 'text-xs text-slate-600', text: t('positive') }),
+                        el('div', { class: 'text-base font-bold tabular-nums text-green-700', text: (result.pos * 100).toFixed(1) + '%' })
                     ]),
-                    el('div', { class: 'border border-gray-200 rounded p-2 text-center bg-gray-50' }, [
-                        el('div', { class: 'text-xs text-gray-600 mb-1', text: t('neutral') }),
-                        el('div', { class: 'text-lg font-bold text-gray-600', text: (result.neu * 100).toFixed(1) + '%' })
+                    el('div', { class: 'rounded-lg p-2 text-center bg-slate-50' }, [
+                        el('div', { class: 'text-xs text-slate-600', text: t('neutral') }),
+                        el('div', { class: 'text-base font-bold tabular-nums text-slate-600', text: (result.neu * 100).toFixed(1) + '%' })
                     ]),
-                    el('div', { class: 'border border-gray-200 rounded p-2 text-center bg-red-50' }, [
-                        el('div', { class: 'text-xs text-gray-600 mb-1', text: t('negative') }),
-                        el('div', { class: 'text-lg font-bold text-red-700', text: (result.neg * 100).toFixed(1) + '%' })
+                    el('div', { class: 'rounded-lg p-2 text-center bg-red-50' }, [
+                        el('div', { class: 'text-xs text-slate-600', text: t('negative') }),
+                        el('div', { class: 'text-base font-bold tabular-nums text-red-700', text: (result.neg * 100).toFixed(1) + '%' })
                     ])
                 ]),
                 result.punctEmphasis > 0
@@ -479,9 +499,9 @@
                     : null,
                 el('div', { class: 'mb-4' }, [
                     el('h4', { class: 'font-semibold text-sm mb-2', text: t('highlights') }),
-                    el('div', { class: 'bg-gray-50 p-3 rounded leading-relaxed' },
+                    el('div', { class: 'bg-slate-50 p-3 rounded-lg leading-relaxed' },
                         result.sentiments.map(s => el('span', {
-                            class: 'inline-block px-2 py-1 m-1 rounded text-sm ' + getWordColor(s.type),
+                            class: 'inline-block px-2 py-0.5 m-0.5 rounded-md text-sm ' + getWordColor(s.type),
                             title: 'Score: ' + s.adjustedScore.toFixed(2),
                             text: s.token
                         }))
@@ -494,24 +514,24 @@
             if (significantTokens.length > 0) {
                 const tableDiv = el('div', {}, [
                     el('h4', { class: 'font-semibold text-sm mb-2', text: t('tokenAnalysis') }),
-                    el('div', { class: 'overflow-x-auto' }, [
-                        el('table', { class: 'w-full border-collapse text-xs' }, [
+                    el('div', { class: 'overflow-x-auto rounded-lg ring-1 ring-slate-200' }, [
+                        el('table', { class: 'w-full text-xs' }, [
                             el('thead', {}, [
-                                el('tr', { class: 'bg-gray-100' }, [
-                                    el('th', { class: 'border p-2 text-left', text: t('thToken') }),
-                                    el('th', { class: 'border p-2', text: t('thOriginal') }),
-                                    el('th', { class: 'border p-2', text: t('thAdjusted') }),
-                                    el('th', { class: 'border p-2 text-left', text: t('thAdjustments') }),
-                                    el('th', { class: 'border p-2', text: t('thStdDev') })
+                                el('tr', { class: 'bg-slate-50 text-slate-600' }, [
+                                    el('th', { class: 'p-2 text-left font-semibold whitespace-nowrap', text: t('thToken') }),
+                                    el('th', { class: 'p-2 font-semibold whitespace-nowrap', text: t('thOriginal') }),
+                                    el('th', { class: 'p-2 font-semibold whitespace-nowrap', text: t('thAdjusted') }),
+                                    el('th', { class: 'p-2 text-left font-semibold whitespace-nowrap', text: t('thAdjustments') }),
+                                    el('th', { class: 'p-2 font-semibold whitespace-nowrap', text: t('thStdDev') })
                                 ])
                             ]),
-                            el('tbody', {}, significantTokens.map(s => {
-                                return el('tr', { class: 'hover:bg-gray-50' }, [
-                                    el('td', { class: 'border p-2 font-semibold', text: s.token }),
-                                    el('td', { class: 'border p-2 text-center', text: s.score.toFixed(2) }),
-                                    el('td', { class: 'border p-2 text-center font-semibold', text: s.adjustedScore.toFixed(2) }),
-                                    el('td', { class: 'border p-2 text-xs', text: s.adjustments && s.adjustments.length > 0 ? s.adjustments.join(', ') : '-' }),
-                                    el('td', { class: 'border p-2', text: s.stdDev ? s.stdDev.toFixed(2) : '-' })
+                            el('tbody', { class: 'divide-y divide-slate-100' }, significantTokens.map(s => {
+                                return el('tr', { class: 'hover:bg-slate-50' }, [
+                                    el('td', { class: 'p-2 font-semibold', text: s.token }),
+                                    el('td', { class: 'p-2 text-center tabular-nums', text: s.score.toFixed(2) }),
+                                    el('td', { class: 'p-2 text-center tabular-nums font-semibold', text: s.adjustedScore.toFixed(2) }),
+                                    el('td', { class: 'p-2 text-slate-600', text: s.adjustments && s.adjustments.length > 0 ? s.adjustments.join(', ') : '-' }),
+                                    el('td', { class: 'p-2 text-center tabular-nums', text: s.stdDev ? s.stdDev.toFixed(2) : '-' })
                                 ]);
                             }))
                         ])
@@ -590,17 +610,17 @@
         // SECURITY: Safe rendering
         const topPositiveContainer = document.getElementById('top-positive');
         setChildren(topPositiveContainer, topPositive.map(t => {
-            return el('div', { class: 'border border-gray-200 rounded p-2 bg-green-50' }, [
+            return el('div', { class: 'rounded-lg p-3 bg-green-50 ring-1 ring-green-100' }, [
                 el('div', { class: 'font-semibold text-sm break-all', text: t.token }),
-                el('div', { class: 'text-green-700 font-bold', text: t.score.toFixed(2) })
+                el('div', { class: 'text-green-700 font-bold tabular-nums', text: t.score.toFixed(2) })
             ]);
         }));
 
         const topNegativeContainer = document.getElementById('top-negative');
         setChildren(topNegativeContainer, topNegative.map(t => {
-            return el('div', { class: 'border border-gray-200 rounded p-2 bg-red-50' }, [
+            return el('div', { class: 'rounded-lg p-3 bg-red-50 ring-1 ring-red-100' }, [
                 el('div', { class: 'font-semibold text-sm break-all', text: t.token }),
-                el('div', { class: 'text-red-700 font-bold', text: t.score.toFixed(2) })
+                el('div', { class: 'text-red-700 font-bold tabular-nums', text: t.score.toFixed(2) })
             ]);
         }));
 
@@ -612,10 +632,10 @@
 
         const highStdDevContainer = document.getElementById('high-stddev');
         setChildren(highStdDevContainer, highStdDev.map(t => {
-            return el('div', { class: 'border border-gray-200 rounded p-2 bg-amber-50' }, [
+            return el('div', { class: 'rounded-lg p-3 bg-amber-50 ring-1 ring-amber-100' }, [
                 el('div', { class: 'font-semibold text-sm break-all', text: t.token }),
-                el('div', { class: 'text-xs' }, [
-                    el('span', { class: 'text-gray-700', text: 'Score: ' + t.score.toFixed(2) }),
+                el('div', { class: 'text-xs tabular-nums' }, [
+                    el('span', { class: 'text-slate-700', text: 'Score: ' + t.score.toFixed(2) }),
                     document.createElement('br'),
                     el('span', { class: 'text-amber-700 font-bold', text: 'σ: ' + t.stdDev.toFixed(2) })
                 ])
@@ -729,22 +749,9 @@
     });
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const tab = btn.dataset.tab;
-
-            document.querySelectorAll('.tab-btn').forEach(b => {
-                b.classList.remove('border-blue-700', 'text-blue-700', 'border-b-2');
-                b.classList.add('text-gray-500');
-            });
-            btn.classList.add('border-blue-700', 'text-blue-700', 'border-b-2');
-            btn.classList.remove('text-gray-500');
-
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-            document.getElementById(tab + '-tab').classList.remove('hidden');
-        });
+        btn.addEventListener('click', () => activateTab(btn.dataset.tab));
     });
+    activateTab('analyze');
 
     document.querySelectorAll('[data-lang-btn]').forEach(btn => {
         btn.addEventListener('click', () => applyLanguage(btn.dataset.langBtn));
@@ -775,13 +782,13 @@
 
         // SECURITY: Safe rendering of search results
         setChildren(resultsDiv, matches.map(([token, data]) => {
-            const scoreColor = data.score > 0 ? 'text-green-700' : data.score < 0 ? 'text-red-700' : 'text-gray-600';
+            const scoreColor = data.score > 0 ? 'text-green-700' : data.score < 0 ? 'text-red-700' : 'text-slate-600';
 
-            return el('div', { class: 'border-b p-3 flex justify-between items-center hover:bg-gray-50' }, [
+            return el('div', { class: 'border-b border-slate-100 p-3 flex justify-between items-center hover:bg-slate-50' }, [
                 el('span', { class: 'font-semibold', text: token }),
-                el('div', { class: 'text-sm' }, [
+                el('div', { class: 'text-sm tabular-nums' }, [
                     el('span', { class: 'font-bold ' + scoreColor, text: data.score.toFixed(2) }),
-                    el('span', { class: 'text-gray-500 ml-2', text: 'σ=' + data.stdDev.toFixed(2) })
+                    el('span', { class: 'text-slate-500 ml-2', text: 'σ=' + data.stdDev.toFixed(2) })
                 ])
             ]);
         }));
