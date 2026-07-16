@@ -333,9 +333,14 @@
     // ============================================================================
 
     function displayResults(result) {
+        const isFirstRender = state.lastResult === null;
         state.lastResult = result;
         const resultContainer = document.getElementById('result-container');
         resultContainer.classList.remove('hidden');
+        if (isFirstRender) {
+            // Bring the first result into view (subsequent analyses keep scroll position)
+            resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
 
         if (Array.isArray(result)) {
             document.getElementById('sentence-mode-results').classList.remove('hidden');
@@ -745,6 +750,10 @@
     document.querySelectorAll('.sample-btn').forEach(btn => {
         btn.addEventListener('click', function () {
             document.getElementById('text-input').value = btn.textContent;
+            // Run the analysis immediately so one click demonstrates the tool
+            if (Object.keys(vaderLexicon).length > 0) {
+                document.getElementById('analyze-btn').click();
+            }
         });
     });
 
