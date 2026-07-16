@@ -1,0 +1,880 @@
+{
+  "reference": "vaderSentiment 3.3.2",
+  "lexicon_entries": 7506,
+  "emoji_entries": 3570,
+  "cases": [
+    {
+      "text": "VADER is smart, handsome, and funny.",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.254,
+        "pos": 0.746,
+        "compound": 0.8316
+      }
+    },
+    {
+      "text": "VADER is smart, handsome, and funny!",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.248,
+        "pos": 0.752,
+        "compound": 0.8439
+      }
+    },
+    {
+      "text": "VADER is very smart, handsome, and funny.",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.299,
+        "pos": 0.701,
+        "compound": 0.8545
+      }
+    },
+    {
+      "text": "VADER is VERY SMART, handsome, and FUNNY.",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.246,
+        "pos": 0.754,
+        "compound": 0.9227
+      }
+    },
+    {
+      "text": "VADER is VERY SMART, handsome, and FUNNY!!!",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.233,
+        "pos": 0.767,
+        "compound": 0.9342
+      }
+    },
+    {
+      "text": "VADER is VERY SMART, uber handsome, and FRIGGIN FUNNY!!!",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.294,
+        "pos": 0.706,
+        "compound": 0.9469
+      }
+    },
+    {
+      "text": "VADER is not smart, handsome, nor funny.",
+      "expected": {
+        "neg": 0.646,
+        "neu": 0.354,
+        "pos": 0.0,
+        "compound": -0.7424
+      }
+    },
+    {
+      "text": "The book was good.",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.508,
+        "pos": 0.492,
+        "compound": 0.4404
+      }
+    },
+    {
+      "text": "At least it isn't a horrible book.",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.678,
+        "pos": 0.322,
+        "compound": 0.431
+      }
+    },
+    {
+      "text": "The book was only kind of good.",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.697,
+        "pos": 0.303,
+        "compound": 0.3832
+      }
+    },
+    {
+      "text": "The plot was good, but the characters are uncompelling and the dialog is not great.",
+      "expected": {
+        "neg": 0.327,
+        "neu": 0.579,
+        "pos": 0.094,
+        "compound": -0.7042
+      }
+    },
+    {
+      "text": "Today SUX!",
+      "expected": {
+        "neg": 0.779,
+        "neu": 0.221,
+        "pos": 0.0,
+        "compound": -0.5461
+      }
+    },
+    {
+      "text": "Today only kinda sux! But I'll get by, lol",
+      "expected": {
+        "neg": 0.127,
+        "neu": 0.556,
+        "pos": 0.317,
+        "compound": 0.5249
+      }
+    },
+    {
+      "text": "Make sure you :) or :D today!",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.294,
+        "pos": 0.706,
+        "compound": 0.8633
+      }
+    },
+    {
+      "text": "Not bad at all",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.513,
+        "pos": 0.487,
+        "compound": 0.431
+      }
+    },
+    {
+      "text": "Sentiment analysis has never been good.",
+      "expected": {
+        "neg": 0.325,
+        "neu": 0.675,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "Sentiment analysis has never been this good!",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.621,
+        "pos": 0.379,
+        "compound": 0.5672
+      }
+    },
+    {
+      "text": "Most automated sentiment analysis tools are shit.",
+      "expected": {
+        "neg": 0.375,
+        "neu": 0.625,
+        "pos": 0.0,
+        "compound": -0.5574
+      }
+    },
+    {
+      "text": "With VADER, sentiment analysis is the shit!",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.583,
+        "pos": 0.417,
+        "compound": 0.6476
+      }
+    },
+    {
+      "text": "Other sentiment analysis tools can be quite bad.",
+      "expected": {
+        "neg": 0.351,
+        "neu": 0.649,
+        "pos": 0.0,
+        "compound": -0.5849
+      }
+    },
+    {
+      "text": "On the other hand, VADER is quite bad ass",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.423,
+        "pos": 0.577,
+        "compound": 0.802
+      }
+    },
+    {
+      "text": "VADER is such a badass!",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.598,
+        "pos": 0.402,
+        "compound": 0.4003
+      }
+    },
+    {
+      "text": "Without a doubt, excellent idea.",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.341,
+        "pos": 0.659,
+        "compound": 0.7013
+      }
+    },
+    {
+      "text": "Roger Dodger is one of the most compelling variations on this theme.",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.834,
+        "pos": 0.166,
+        "compound": 0.2944
+      }
+    },
+    {
+      "text": "Roger Dodger is at least compelling as a variation on the theme.",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.853,
+        "pos": 0.147,
+        "compound": 0.2263
+      }
+    },
+    {
+      "text": "Roger Dodger is one of the least compelling variations on this theme.",
+      "expected": {
+        "neg": 0.132,
+        "neu": 0.868,
+        "pos": 0.0,
+        "compound": -0.1695
+      }
+    },
+    {
+      "text": "Not such a badass after all.",
+      "expected": {
+        "neg": 0.289,
+        "neu": 0.711,
+        "pos": 0.0,
+        "compound": -0.2584
+      }
+    },
+    {
+      "text": "Without a doubt, an excellent idea.",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.408,
+        "pos": 0.592,
+        "compound": 0.7013
+      }
+    },
+    {
+      "text": "It was one of the worst movies I've seen, despite good reviews.",
+      "expected": {
+        "neg": 0.394,
+        "neu": 0.606,
+        "pos": 0.0,
+        "compound": -0.7584
+      }
+    },
+    {
+      "text": "Unbelievably bad acting!!",
+      "expected": {
+        "neg": 0.686,
+        "neu": 0.314,
+        "pos": 0.0,
+        "compound": -0.6572
+      }
+    },
+    {
+      "text": "Poor direction.",
+      "expected": {
+        "neg": 0.756,
+        "neu": 0.244,
+        "pos": 0.0,
+        "compound": -0.4767
+      }
+    },
+    {
+      "text": "VERY poor production.",
+      "expected": {
+        "neg": 0.674,
+        "neu": 0.326,
+        "pos": 0.0,
+        "compound": -0.6281
+      }
+    },
+    {
+      "text": "The movie was bad.",
+      "expected": {
+        "neg": 0.538,
+        "neu": 0.462,
+        "pos": 0.0,
+        "compound": -0.5423
+      }
+    },
+    {
+      "text": "Very bad movie.",
+      "expected": {
+        "neg": 0.655,
+        "neu": 0.345,
+        "pos": 0.0,
+        "compound": -0.5849
+      }
+    },
+    {
+      "text": "VERY BAD movie!",
+      "expected": {
+        "neg": 0.735,
+        "neu": 0.265,
+        "pos": 0.0,
+        "compound": -0.7616
+      }
+    },
+    {
+      "text": "I love this product, it's amazing!",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.325,
+        "pos": 0.675,
+        "compound": 0.8516
+      }
+    },
+    {
+      "text": "The movie was okay, nothing special.",
+      "expected": {
+        "neg": 0.277,
+        "neu": 0.49,
+        "pos": 0.233,
+        "compound": -0.092
+      }
+    },
+    {
+      "text": "I don't like this at all, it's very bad.",
+      "expected": {
+        "neg": 0.457,
+        "neu": 0.543,
+        "pos": 0.0,
+        "compound": -0.7098
+      }
+    },
+    {
+      "text": "This is not bad, actually quite good!",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.441,
+        "pos": 0.559,
+        "compound": 0.7457
+      }
+    },
+    {
+      "text": "The book offers fascinating ideas but sadly fails in its delivery.",
+      "expected": {
+        "neg": 0.419,
+        "neu": 0.453,
+        "pos": 0.127,
+        "compound": -0.7311
+      }
+    },
+    {
+      "text": "I love this product! It's amazing! The quality is excellent!",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.358,
+        "pos": 0.642,
+        "compound": 0.927
+      }
+    },
+    {
+      "text": "The product is great. But the shipping was terrible!",
+      "expected": {
+        "neg": 0.317,
+        "neu": 0.5,
+        "pos": 0.182,
+        "compound": -0.4389
+      }
+    },
+    {
+      "text": "This is not very good",
+      "expected": {
+        "neg": 0.396,
+        "neu": 0.604,
+        "pos": 0.0,
+        "compound": -0.3865
+      }
+    },
+    {
+      "text": "not good",
+      "expected": {
+        "neg": 0.706,
+        "neu": 0.294,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "no good",
+      "expected": {
+        "neg": 0.706,
+        "neu": 0.294,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "This is no good, or fun.",
+      "expected": {
+        "neg": 0.561,
+        "neu": 0.439,
+        "pos": 0.0,
+        "compound": -0.6259
+      }
+    },
+    {
+      "text": "There is no hope or joy here.",
+      "expected": {
+        "neg": 0.523,
+        "neu": 0.477,
+        "pos": 0.0,
+        "compound": -0.6681
+      }
+    },
+    {
+      "text": "That option is no better or nicer.",
+      "expected": {
+        "neg": 0.49,
+        "neu": 0.51,
+        "pos": 0.0,
+        "compound": -0.5875
+      }
+    },
+    {
+      "text": "I have no doubt this works.",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.703,
+        "pos": 0.297,
+        "compound": 0.2755
+      }
+    },
+    {
+      "text": "I can't stand it",
+      "expected": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "You shouldn't have done better",
+      "expected": {
+        "neg": 0.376,
+        "neu": 0.624,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "It wasn't great, was it?",
+      "expected": {
+        "neg": 0.452,
+        "neu": 0.548,
+        "pos": 0.0,
+        "compound": -0.5096
+      }
+    },
+    {
+      "text": "Really bad?? Really??",
+      "expected": {
+        "neg": 0.704,
+        "neu": 0.296,
+        "pos": 0.0,
+        "compound": -0.6959
+      }
+    },
+    {
+      "text": "Why would you do that???",
+      "expected": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "Are you serious????",
+      "expected": {
+        "neg": 0.531,
+        "neu": 0.469,
+        "pos": 0.0,
+        "compound": -0.3094
+      }
+    },
+    {
+      "text": "Terrible!!!!!!",
+      "expected": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.6449
+      }
+    },
+    {
+      "text": "I <3 you",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.408,
+        "pos": 0.592,
+        "compound": 0.4404
+      }
+    },
+    {
+      "text": ":D :D :D",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.0,
+        "pos": 1.0,
+        "compound": 0.872
+      }
+    },
+    {
+      "text": ":( today",
+      "expected": {
+        "neg": 0.744,
+        "neu": 0.256,
+        "pos": 0.0,
+        "compound": -0.4404
+      }
+    },
+    {
+      "text": "I love you more",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.417,
+        "pos": 0.583,
+        "compound": 0.6369
+      }
+    },
+    {
+      "text": "This is more than expected",
+      "expected": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "kind of good",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.408,
+        "pos": 0.592,
+        "compound": 0.4404
+      }
+    },
+    {
+      "text": "sort of terrible",
+      "expected": {
+        "neg": 0.608,
+        "neu": 0.392,
+        "pos": 0.0,
+        "compound": -0.4767
+      }
+    },
+    {
+      "text": "It was kind of bad ass",
+      "expected": {
+        "neg": 0.361,
+        "neu": 0.412,
+        "pos": 0.227,
+        "compound": -0.3167
+      }
+    },
+    {
+      "text": "This restaurant is the bomb",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.5,
+        "pos": 0.5,
+        "compound": 0.6124
+      }
+    },
+    {
+      "text": "That was to die for!",
+      "expected": {
+        "neg": 0.512,
+        "neu": 0.488,
+        "pos": 0.0,
+        "compound": -0.636
+      }
+    },
+    {
+      "text": "Yeah right, great job.",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.241,
+        "pos": 0.759,
+        "compound": 0.743
+      }
+    },
+    {
+      "text": "It was the kiss of death for the project.",
+      "expected": {
+        "neg": 0.417,
+        "neu": 0.583,
+        "pos": 0.0,
+        "compound": -0.6124
+      }
+    },
+    {
+      "text": "good movie but good acting",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.341,
+        "pos": 0.659,
+        "compound": 0.7003
+      }
+    },
+    {
+      "text": "The food was great, but the service was great.",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.461,
+        "pos": 0.539,
+        "compound": 0.8481
+      }
+    },
+    {
+      "text": "great great but great",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.085,
+        "pos": 0.915,
+        "compound": 0.8945
+      }
+    },
+    {
+      "text": "The GREAT escape",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.133,
+        "pos": 0.867,
+        "compound": 0.7603
+      }
+    },
+    {
+      "text": "REALLY GOOD movie",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.3,
+        "pos": 0.7,
+        "compound": 0.6867
+      }
+    },
+    {
+      "text": "A VERY good day",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.433,
+        "pos": 0.567,
+        "compound": 0.6028
+      }
+    },
+    {
+      "text": "never so good",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.348,
+        "pos": 0.652,
+        "compound": 0.5777
+      }
+    },
+    {
+      "text": "never this good",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.372,
+        "pos": 0.628,
+        "compound": 0.5228
+      }
+    },
+    {
+      "text": "I have never been so happy",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.513,
+        "pos": 0.487,
+        "compound": 0.6948
+      }
+    },
+    {
+      "text": "at least it was good",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.58,
+        "pos": 0.42,
+        "compound": 0.4404
+      }
+    },
+    {
+      "text": "the very least good option",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.557,
+        "pos": 0.443,
+        "compound": 0.4902
+      }
+    },
+    {
+      "text": "the least good option",
+      "expected": {
+        "neg": 0.445,
+        "neu": 0.555,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "I'm so happy 😊 This is amazing! 🎉",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.319,
+        "pos": 0.681,
+        "compound": 0.9521
+      }
+    },
+    {
+      "text": "Catch utf-8 emoji such as 💘 and 💋 and 😁",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.583,
+        "pos": 0.417,
+        "compound": 0.875
+      }
+    },
+    {
+      "text": "no😀space between words",
+      "expected": {
+        "neg": 0.345,
+        "neu": 0.655,
+        "pos": 0.0,
+        "compound": -0.2755
+      }
+    },
+    {
+      "text": "😊",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.333,
+        "pos": 0.667,
+        "compound": 0.7184
+      }
+    },
+    {
+      "text": "💀 💀 💀",
+      "expected": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "lol",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.0,
+        "pos": 1.0,
+        "compound": 0.4215
+      }
+    },
+    {
+      "text": "meh",
+      "expected": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.0772
+      }
+    },
+    {
+      "text": "the",
+      "expected": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "!!!",
+      "expected": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "???",
+      "expected": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "1234 5678",
+      "expected": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "Mr. Smith is happy. Dr. Jones is sad.",
+      "expected": {
+        "neg": 0.242,
+        "neu": 0.469,
+        "pos": 0.289,
+        "compound": 0.1531
+      }
+    },
+    {
+      "text": "uh-uh, that is not happening",
+      "expected": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "I am without hope",
+      "expected": {
+        "neg": 0.445,
+        "neu": 0.555,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "friends laughing and smiling at the party",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.2,
+        "pos": 0.8,
+        "compound": 0.9001
+      }
+    },
+    {
+      "text": "riot fire fight blood",
+      "expected": {
+        "neg": 0.896,
+        "neu": 0.104,
+        "pos": 0.0,
+        "compound": -0.8225
+      }
+    },
+    {
+      "text": "happy birthday",
+      "expected": {
+        "neg": 0.0,
+        "neu": 0.213,
+        "pos": 0.787,
+        "compound": 0.5719
+      }
+    }
+  ]
+}

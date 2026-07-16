@@ -24,10 +24,10 @@ This document explains how to cite this tool when using it in academic research.
 
 When using this tool in academic research:
 
-✅ **Required**: Cite VADER paper (Hutto & Gilbert, 2014)  
-✅ **Recommended**: Cite this tool (Sawada, 2025)  
-✅ **Important**: Specify that this tool implements VADER algorithm  
-✅ **Recommended**: Specify analysis unit (sentence-level or document-level)
+- **Required**: Cite VADER paper (Hutto & Gilbert, 2014)  
+- **Recommended**: Cite this tool (Sawada, 2025)  
+- **Important**: Specify that this tool implements VADER algorithm  
+- **Recommended**: Specify analysis unit (sentence-level or document-level)
 
 ### Why Cite Both?
 
@@ -87,7 +87,7 @@ Sentiment analysis was conducted using a web-based implementation
 (Sawada, 2025) of the VADER (Valence Aware Dictionary and sEntiment 
 Reasoner; Hutto & Gilbert, 2014) algorithm. VADER combines a lexicon 
 of approximately 7,500 sentiment-bearing words with five grammatical 
-rules (negation, boosters, ALL CAPS, exclamation marks, and contrastive 
+rules (negation, boosters, ALL CAPS, punctuation emphasis, and contrastive 
 conjunction "but") to compute sentiment scores. Following the VADER paper's 
 recommendation, texts were split into sentences and each sentence was 
 analyzed separately. The analysis used vader_lexicon.txt (v.2014).
@@ -123,7 +123,7 @@ Sentiment analysis of collected text data was conducted using a web-based
 implementation (Sawada, 2025) of VADER (Hutto & Gilbert, 2014). VADER is 
 a lexicon-based sentiment analysis method that combines a sentiment lexicon 
 of approximately 7,500 words (vader_lexicon.txt, v.2014) with grammatical 
-rules (processing negation, boosters, ALL CAPS, exclamation marks, and 
+rules (processing negation, boosters, ALL CAPS, punctuation emphasis, and 
 contrastive conjunctions) to compute sentiment scores.
 
 Following the VADER paper's recommendation (Hutto & Gilbert, 2014), each 
@@ -386,7 +386,7 @@ Sentiment analysis used a web-based implementation (Sawada, 2025) of the
 VADER (Valence Aware Dictionary and sEntiment Reasoner; Hutto & Gilbert, 2014) 
 algorithm. VADER combines a sentiment lexicon of approximately 7,500 words 
 (vader_lexicon.txt, v.2014) with five grammatical rules (negation, boosters, 
-ALL CAPS, exclamation marks, and "but" context adjustment) to compute 
+ALL CAPS, punctuation emphasis, and "but" context adjustment) to compute 
 sentiment scores.
 
 [For sentence-level analysis:]

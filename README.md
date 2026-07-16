@@ -1,5 +1,6 @@
 # VADER-based Sentiment Analysis Tool
 
+[![tests](https://github.com/nozomi-sawada/vader-sentiment-analyzer/actions/workflows/test.yml/badge.svg)](https://github.com/nozomi-sawada/vader-sentiment-analyzer/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![VADER](https://img.shields.io/badge/VADER-Hutto%20%26%20Gilbert%202014-green)](https://github.com/cjhutto/vaderSentiment)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
@@ -11,45 +12,46 @@
 
 ## Abstract
 
-This tool provides a faithful browser-based implementation of the VADER (Valence Aware Dictionary and sEntiment Reasoner) algorithm developed by Hutto & Gilbert (2014). It employs a lexicon and rule-based approach specifically designed for sentiment analysis of social media text, implementing all core VADER features including negation handling, booster words, and context-dependent weighting. Developed as a practical tool for researchers and educators to understand and apply sentiment analysis methodologies.
+This tool is a browser-based implementation of the VADER (Valence Aware Dictionary and sEntiment Reasoner) sentiment analysis algorithm (Hutto & Gilbert, 2014). The analysis engine is a port of the reference Python implementation (vaderSentiment 3.3.2), and automated tests check that its output matches the reference. It is intended for researchers and educators who want to understand and apply lexicon- and rule-based sentiment analysis.
+
+![Analysis result screen](docs/images/screenshot-analysis-en.png)
 
 ## Key Features
 
-- **🌐 Browser-based** - No installation, no server, runs entirely in your browser
-- **📱 Offline capable** - Works offline after loading lexicon files
-- **🎯 Rule-based & transparent** - All decisions are interpretable, no black-box ML
-- **😊 Emoji support** - Analyzes emojis by converting them to text descriptions (optional)
-- **📊 Detailed visualization** - Shows score adjustment process for each word
-- **📄 Sentence-level analysis** - Supports sentence-by-sentence analysis as recommended by VADER paper
-- **🔍 Lexicon explorer** - Search and browse ~7,500 sentiment words with statistics
-- **📈 Statistical insights** - Distribution charts, top positive/negative words, standard deviation analysis
+- **Browser-based** - No installation or server required
+- **Ready to use** - The VADER lexicon is bundled (MIT license) and loads automatically
+- **Offline capable** - No external dependencies
+- **Japanese / English UI** - Switch the interface language with one click
+- **Rule-based** - Lexicon and rule-based scoring; every adjustment is shown to the user
+- **Emoji support** - Analyzes emojis by converting them to text descriptions (optional)
+- **Per-word detail** - Shows the score adjustment process for each word
+- **Sentence-level analysis** - Sentence-by-sentence analysis, as recommended by the VADER paper
+- **Lexicon explorer** - Search and browse the ~7,500-word lexicon
+- **Lexicon statistics** - Distribution chart, top positive/negative words, standard deviation
 
 ## Quick Start
 
-### 1. Download Required Files
+### Run the Tool
 
-**Required:** VADER Lexicon (~7,500 sentiment words)
-```
-https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/vader_lexicon.txt
-```
-
-**Optional:** Emoji Lexicon (~3,000 emoji mappings)
-```
-https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/emoji_utf8_lexicon.txt
-```
-
-💡 **Tip:** Click "Raw" button on GitHub, then right-click and "Save As"
-
-### 2. Run the Tool
-
-1. Open `vader_sentiment_analyzer.html` in your browser
-2. Upload the lexicon file(s)
+1. Download this repository ("Code" → "Download ZIP", then extract) or clone it
+2. Open `index.html` in your browser — the bundled VADER lexicon and emoji lexicon load automatically
 3. Enter text and click "Analyze"
 
-### 3. Choose Analysis Mode
+The interface opens in Japanese by default; use the **English** button in the top-right corner to switch (the choice is remembered).
+
+> [!NOTE]
+> Automatic loading requires the page to be served over HTTP (e.g. GitHub Pages or a local web server). If you open `index.html` directly from your file system, load the lexicon files manually via the buttons on the page — they are in `third_party/vaderSentiment/`.
+
+### Using a Different Lexicon
+
+The file inputs on the page let you replace the bundled lexicons at any time,
+e.g. with a customized `vader_lexicon.txt`. The original files are distributed
+at https://github.com/cjhutto/vaderSentiment.
+
+### Choose Analysis Mode
 
 - **Normal mode** - Analyzes entire text as one unit
-- **Sentence mode** ☑️ - Splits text and analyzes each sentence (recommended by VADER paper)
+- **Sentence mode** - Splits text and analyzes each sentence (recommended by the VADER paper)
 
 ## About VADER Algorithm
 
@@ -91,7 +93,8 @@ This normalization ensures that:
 | -0.05 < score < 0.05 | Neutral | Emotionally neutral text |
 | score ≤ -0.05 | Negative | Text containing negative sentiment |
 
-**Note:** These thresholds were optimized for general social media text. Threshold adjustment may be necessary depending on domain and research objectives.
+> [!NOTE]
+> These thresholds were optimized for general social media text. Threshold adjustment may be necessary depending on domain and research objectives.
 
 **Important Note: Difference from VADER Paper**
 
@@ -124,8 +127,11 @@ VADER calculates sentiment scores through the following steps:
    | **Negation** | Reverses polarity (×-0.74) | "not good" → +1.9 → -1.41 |
    | **Booster words** | Amplifies score (±0.293) | "very good" → +1.9 → +2.19 |
    | **ALL CAPS** | Emphasizes (±0.733) | "GOOD" → +1.9 → +2.63 |
-   | **Exclamation marks** | Emphasizes (±0.292 each, max 4) | "good!" → +1.9 → +2.19 |
+   | **Exclamation marks** | Text-level emphasis (+0.292 each, max 4) applied to the summed score | "good!" → sum +1.9 → +2.19 |
+   | **Question marks** | Text-level emphasis (2–3: +0.18 each, 4+: +0.96) | "really??" |
    | **"but" clause** | Before ×0.5, After ×1.5 | "good but bad" → adjust both |
+   | **Idioms & special cases** | Fixed valence for phrases | "bad ass" → +1.5, "the shit" → +3 |
+   | **"least" / "no"** | Contextual negation | "least good", "no good" |
 
 3. **Normalization and Compound Score Calculation**
 
@@ -142,56 +148,99 @@ VADER calculates sentiment scores through the following steps:
 
 ### Implementation Fidelity
 
-This tool faithfully reproduces the original VADER implementation:
+The analysis engine (`vader.js`) is a line-by-line port of the reference Python
+implementation ([vaderSentiment 3.3.2](https://github.com/cjhutto/vaderSentiment)),
+and its output is verified against the reference by an automated golden test
+suite (see [Testing](#testing)):
 
-- ✅ Lexicon-based scoring using original VADER lexicon
-- ✅ Negation handling (checks 3 tokens back)
-- ✅ Booster words with distance decay (1→0.95, 2→0.90, 3→0.90)
-- ✅ ALL CAPS detection and emphasis
-- ✅ Exclamation marks (up to 4)
-- ✅ "but" clause contextual adjustment
-- ✅ Normalization (α=15)
-- ✅ Emoji support via text conversion (optional)
-- ✅ Sentence splitting with abbreviation protection (Mr., Dr., etc.)
-- ✅ All tokens processing - Processes all tokens internally for accurate compound score (Python VADER compatible)
+- Lexicon-based scoring using original VADER lexicon
+- Tokenization identical to the reference (`SentiText`): whitespace split with punctuation stripping that preserves emoticons such as `:)`, `:D`, `<3`
+- Negation handling (checks 3 tokens back), including contractions ("n't"), "never so/this" emphasis, "without doubt", "least", and "no" special cases
+- Booster words with distance decay (immediate → ×1.00, 2 back → ×0.95, 3 back → ×0.90), including ALL CAPS boosters
+- ALL CAPS detection and emphasis (±0.733)
+- Punctuation emphasis at text level: exclamation marks (up to 4, +0.292 each) and question marks (2–3: +0.18 each, 4+: +0.96)
+- "but" clause contextual adjustment (before ×0.5, after ×1.5)
+- Special-case idioms ("bad ass", "the shit", "to die for", "yeah right", ...) and multiword dampeners ("kind of", "sort of")
+- Compound normalization (α=15) and pos/neu/neg proportions computed exactly as in the reference (±1 compensation per token)
+- Emoji support via inline text-description conversion, identical to the reference (optional)
+- Sentence splitting with abbreviation protection (Mr., Dr., etc.) — an application feature on top of VADER
+
+### Project Structure
+
+```
+index.html          – markup only (no inline scripts)
+vader.js            – the VADER algorithm (browser + Node.js)
+app.js              – UI layer (file loading, rendering, language toggle, events)
+tailwind.css        – pre-built stylesheet (regenerate with: npm run build:css)
+tailwind.input.css  – stylesheet source
+third_party/        – bundled VADER lexicon files (MIT, see LICENSE there)
+test/               – golden tests against the reference Python implementation
+```
+
+The stylesheet is committed pre-built, so the app runs without any build step.
+After changing CSS classes in `index.html` or `app.js`, regenerate it with
+`npm install && npm run build:css`.
+
+### Testing
+
+The golden test suite pins the exact scores of the reference Python
+implementation for ~100 sentences (negation, boosters, ALL CAPS, punctuation,
+idioms, emoticons, emojis, edge cases) and asserts that `vader.js` reproduces
+them:
+
+```bash
+node test/run-tests.js        # compare vader.js against test/golden.json
+```
+
+The tests use the lexicon files bundled in `third_party/vaderSentiment/`.
+
+To regenerate the golden data from the reference implementation:
+
+```bash
+pip install vaderSentiment==3.3.2
+python3 test/generate_golden.py
+```
 
 ## Examples
 
 ### Basic Analysis
 ```
 Input: "I love this product, it's amazing!"
-Result: Strong Positive (0.8313)
+Result: Strong Positive (0.8516)
   - love: +3.2
-  - amazing: +2.9
+  - amazing: +2.8
+  - punctuation emphasis (!): +0.292
 ```
 
 ### Negation Handling
 ```
 Input: "This is not very good"
-Result: Weak Negative (-0.3612)
+Result: Weak Negative (-0.3865)
   - not: negation word
   - very: booster
-  - good: +1.9 → -1.62 (negation effect ×-0.74)
+  - good: +1.9 → -1.62 (booster +0.293, then negation ×-0.74)
 ```
 
 ### Context Shift with "but"
 ```
-Input: "The book offers fascinating ideas but sadly fails"
-Result: Weak Negative (-0.3804)
-  - fascinating: +3.0 → +1.5 (before "but" ×0.5)
-  - sadly: -1.5 → -2.25 (after "but" ×1.5)
-  - fails: -2.0 → -3.0 (after "but" ×1.5)
+Input: "The book offers fascinating ideas but sadly fails in its delivery."
+Result: Strong Negative (-0.7311)
+  - fascinating: +2.5 → +1.25 (before "but" ×0.5)
+  - sadly: -1.8 → -2.70 (after "but" ×1.5)
+  - fails: -1.8 → -2.70 (after "but" ×1.5)
 ```
 
 ### Sentence-level Analysis
 ```
 Input: "I love this! It's amazing! Quality is excellent!"
 Result: 3 sentences analyzed separately
-  - Sentence 1: Strong Positive (0.6369)
-  - Sentence 2: Strong Positive (0.5994)
-  - Sentence 3: Strong Positive (0.6588)
-  Average: 0.6317
+  - Sentence 1: Strong Positive (0.6696)
+  - Sentence 2: Strong Positive (0.6239)
+  - Sentence 3: Strong Positive (0.6114)
+  Average: 0.6350
 ```
+
+All example scores are identical to those of the reference Python implementation (vaderSentiment 3.3.2).
 
 ## Validation and Reliability
 
@@ -207,11 +256,11 @@ Hutto & Gilbert (2014) validated VADER's performance on the following datasets:
 
 ### Validity of This Implementation
 
-This tool aims to faithfully reproduce the behavior of the original VADER implementation (Python version). Key implementation aspects:
+The analysis engine is a port of the original VADER implementation (Python version):
 
-1. **Core Algorithm** - Implements grammatical and pragmatic rules, score calculation formulas, normalization parameters, and negation scope (3 tokens)
+1. **Core Algorithm** - Direct port of the reference implementation: grammatical and pragmatic rules, score calculation formulas, normalization parameters, and negation scope (3 tokens)
 2. **Lexicon Usage** - Uses original VADER lexicon with compatibility for lexicon format and preservation of standard deviation data
-3. **Verification** - Tested with basic examples and validated core functionality
+3. **Verification** - Automated golden tests assert that compound/pos/neu/neg scores match the reference Python implementation (vaderSentiment 3.3.2) on ~100 test sentences (see [Testing](#testing))
 
 ### Limitations
 
@@ -221,33 +270,32 @@ Researchers should be aware of the following limitations:
 2. **Domain dependency** - Optimized for social media; may have reduced accuracy on formal text
 3. **Contextual understanding** - Limited ability to detect sarcasm or irony
 4. **Temporal changes** - Lexicon based on 2014 ratings; may not cover newer slang
+5. **Multi-codepoint emojis** - Emojis composed of multiple code points (skin-tone variants such as 👍🏽, combined family emojis such as 👨‍👩‍👧) are not matched by the emoji lexicon. This matches the behavior of the reference Python implementation
 
 ## Browser Compatibility
 
-- ✅ Chrome / Edge 90+ (Recommended)
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ⚠️ Internet Explorer (Not supported)
+- Chrome / Edge 90+ (Recommended)
+- Firefox 88+
+- Safari 14+
+- Internet Explorer is not supported
 
 ## Security Features
 
-This tool implements multiple security measures to ensure safe operation in browser environments:
+The tool takes the following precautions for running in the browser:
 
 ### XSS (Cross-Site Scripting) Protection
 
-- **Safe DOM Construction** - All dynamic content is rendered using `textContent` and `createElement` instead of `innerHTML`
-- **No HTML Injection** - User input and lexicon data are automatically escaped
-- **Validated Rendering** - All 8 rendering locations use XSS-safe methods
+- All dynamic content is rendered with `textContent` and `createElement` instead of `innerHTML`, so user input and lexicon data are escaped
 
 ### Input Validation
 
-- **File Size Limit** - Maximum 10MB per file to prevent DoS attacks
-- **Extension Check** - Only `.txt` files are accepted
-- **Content Validation** - Lexicon format verification
+- **File size limit** - Maximum 10MB per file, to keep the browser responsive
+- **Extension check** - Only `.txt` files are accepted
+- **Content validation** - Lexicon format is checked; files with no valid entries are rejected
 
 ### Content Security Policy (CSP)
 
-The tool uses CSP headers to restrict script execution, styles, network connections, and frame embedding.
+The page sets a Content Security Policy of `script-src 'self'; style-src 'self'` — only scripts and styles from the same folder can run, and no external resources (CDNs, fonts, analytics) are loaded.
 
 ## Academic Usage Guide
 
@@ -320,7 +368,8 @@ For more detailed information, see the `docs/` folder:
 
 This tool is released under the MIT License.
 
-**Important:** VADER lexicon files are distributed in the [original repository](https://github.com/cjhutto/vaderSentiment). This tool does not include the lexicon files. Users must download them separately to comply with licensing requirements.
+> [!IMPORTANT]
+> The VADER lexicon files in `third_party/vaderSentiment/` are redistributed unmodified from the [original repository](https://github.com/cjhutto/vaderSentiment) under the MIT License (Copyright (c) 2016 C.J. Hutto); the license text and provenance are included in that directory. If you use the lexicons, cite Hutto & Gilbert (2014).
 
 ## Acknowledgments
 

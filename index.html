@@ -1,1342 +1,425 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja" data-lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--
-        Security Note: CSP is configured to allow Tailwind CDN for development.
-        For production, self-host Tailwind CSS and use stricter CSP:
-        Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:;
-    -->
     <meta http-equiv="Content-Security-Policy"
-          content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data:; font-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; upgrade-insecure-requests;">
+          content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none';">
     <title>VADER準拠 感情分析ツール | VADER-based Sentiment Analysis Tool</title>
-    <!-- TODO: Self-host Tailwind CSS for production and remove CDN dependency -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .sentiment-bar {
-            transition: width 0.5s ease;
-        }
-        .chart-bar {
-            transition: height 0.3s ease;
-        }
-    </style>
+    <link rel="stylesheet" href="tailwind.css">
 </head>
-<body class="bg-gray-50">
-    <div id="app" class="min-h-screen p-6">
-        <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-8">
-            <h1 class="text-3xl font-bold text-blue-900 mb-2">
-                VADER準拠 感情分析ツール / VADER-based Sentiment Analysis Tool
-            </h1>
-            <p class="text-sm text-gray-600 mb-2">
-                ※VADERは英語テキスト専用の感情分析システムです。エモーティコン(顔文字)や絵文字にも対応しています。
-            </p>
-            <p class="text-sm text-gray-600 mb-6">
-                VADER is a sentiment analysis system designed specifically for English text, supporting emoticons and emojis.
-            </p>
+<body class="bg-slate-100 text-slate-900 antialiased">
+    <div id="app" class="min-h-screen px-4 py-6 sm:px-6 sm:py-10">
+        <div class="max-w-5xl mx-auto">
 
-            <div id="notification" class="hidden mb-4 p-4 rounded"></div>
+            <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 p-5 sm:p-10">
 
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-                <h3 class="font-bold text-blue-900 mb-2">📖 VADERについて / About VADER</h3>
-                <p class="text-sm mb-2">
-                    <strong>VADER (Valence Aware Dictionary and sEntiment Reasoner)</strong> は、
-                    ソーシャルメディアテキストの感情分析のために開発された辞書ベースの感情分析ツールです。
-                </p>
-                <p class="text-sm text-gray-700">
-                    VADER is a lexicon and rule-based sentiment analysis tool specifically attuned to sentiments
-                    expressed in social media.
-                </p>
-            </div>
-
-            <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-                <h3 class="font-bold text-blue-900 mb-2">🔧 本ツールの機能 / Tool Features</h3>
-                <p class="text-sm mb-3">
-                    本ツールはVADERアルゴリズムを実装したブラウザベースのアプリケーションです：
-                </p>
-                <p class="text-sm mb-3">
-                    This tool is a browser-based application that implements the VADER algorithm:
-                </p>
-
-                <div class="space-y-2">
-                    <div class="flex items-start">
-                        <span class="text-blue-600 mr-2">✓</span>
-                        <p class="text-sm text-gray-700">
-                            VADERレキシコンの記号・絵文字を含むすべての語彙に対応<br/>
-                            <span class="text-xs text-gray-600">Supports all vocabulary in the VADER lexicon including symbols and emoticons</span>
-                        </p>
-                    </div>
-                    <div class="flex items-start">
-                        <span class="text-blue-600 mr-2">✓</span>
-                        <p class="text-sm text-gray-700">
-                            否定表現、強調語、大文字、感嘆符による感情強度の調整<br/>
-                            <span class="text-xs text-gray-600">Sentiment intensity adjustments for negation, boosters, ALL CAPS, and exclamation marks</span>
-                        </p>
-                    </div>
-                    <div class="flex items-start">
-                        <span class="text-blue-600 mr-2">✓</span>
-                        <p class="text-sm text-gray-700">
-                            各単語のスコア調整プロセスを可視化した詳細分析<br/>
-                            <span class="text-xs text-gray-600">Detailed analysis visualizing the score adjustment process for each word</span>
-                        </p>
-                    </div>
-                    <div class="flex items-start">
-                        <span class="text-blue-600 mr-2">✓</span>
-                        <p class="text-sm text-gray-700">
-                            絵文字を説明文に変換して感情分析(オプション) 😊🎉❤️<br/>
-                            <span class="text-xs text-gray-600">Converts emojis to text descriptions for sentiment analysis (optional) 😊🎉❤️</span>
-                        </p>
-                    </div>
-                    <div class="flex items-start">
-                        <span class="text-blue-600 mr-2">✓</span>
-                        <p class="text-sm text-gray-700">
-                            文ごとの分析（VADER論文推奨）<br/>
-                            <span class="text-xs text-gray-600">Sentence-level analysis (recommended by VADER paper)</span>
-                        </p>
-                    </div>
-                </div>
-
-                <p class="text-sm mt-3 text-blue-900">
-                    ※このツールはVADERアルゴリズムの実装です。
-                </p>
-                <p class="text-sm text-blue-800">
-                    This tool is an implementation of the VADER algorithm.
-                </p>
-            </div>
-
-            <div id="file-upload-section" class="mb-8 space-y-4">
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-500 transition">
-                    <div class="flex items-start gap-4">
-                        <svg class="text-gray-400 flex-shrink-0" width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                        </svg>
-                        <div class="flex-1">
-                            <h3 class="font-semibold text-lg mb-2">
-                                <span class="text-red-600">【必須】</span> VADERレキシコンファイル /
-                                <span class="text-red-600">【Required】</span> VADER Lexicon File
-                            </h3>
-                            <p class="text-sm text-gray-600 mb-3">
-                                約7,500語の感情語彙を含む、メインのレキシコンファイルです。<br/>
-                                Main lexicon file containing approximately 7,500 sentiment words.
-                            </p>
-                            <label class="cursor-pointer inline-block">
-                                <span class="text-blue-600 hover:text-blue-800 font-semibold">
-                                    📄 vader_lexicon.txt を選択 / Select vader_lexicon.txt
-                                </span>
-                                <input type="file" id="lexicon-file" accept=".txt" class="hidden">
-                            </label>
-                            <div class="mt-2 text-xs">
-                                <a href="https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/vader_lexicon.txt"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   class="text-blue-600 hover:underline">
-                                    📥 GitHubからダウンロード / Download from GitHub
-                                </a>
-                            </div>
-                            <div id="lexicon-loaded" class="hidden mt-3 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-800"></div>
+                <header class="mb-8">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-semibold tracking-widest text-blue-700 uppercase mb-1">Sentiment Analysis</p>
+                            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+                                <span class="lang-ja">VADER準拠 感情分析ツール</span>
+                                <span class="lang-en">VADER-based Sentiment Analysis Tool</span>
+                            </h1>
+                        </div>
+                        <div class="flex rounded-full bg-slate-100 p-1 flex-shrink-0" role="group" aria-label="Language">
+                            <button type="button" data-lang-btn="ja" class="px-3 py-1 rounded-full text-sm font-medium">日本語</button>
+                            <button type="button" data-lang-btn="en" class="px-3 py-1 rounded-full text-sm font-medium">English</button>
                         </div>
                     </div>
-                </div>
+                    <p class="text-sm text-slate-600 mt-3 max-w-3xl">
+                        <span class="lang-ja">英語テキストの感情（ポジティブ／ネガティブ）を、その判断根拠まで含めて分析します。VADERは英語専用の辞書・ルールベース感情分析手法で、エモーティコンや絵文字にも対応しています。</span>
+                        <span class="lang-en">Analyzes the sentiment of English text — including the reasoning behind each score. VADER is a lexicon and rule-based method for English, supporting emoticons and emojis.</span>
+                    </p>
+                </header>
 
-                <div class="border-2 border-dashed border-blue-200 rounded-lg p-6 hover:border-blue-400 transition">
-                    <div class="flex items-start gap-4">
-                        <div class="text-4xl flex-shrink-0">😊</div>
-                        <div class="flex-1">
-                            <h3 class="font-semibold text-lg mb-2">
-                                <span class="text-blue-600">【オプション】</span> 絵文字レキシコン /
-                                <span class="text-blue-600">【Optional】</span> Emoji Lexicon
-                            </h3>
-                            <p class="text-sm text-gray-600 mb-3">
-                                約3,000種類以上の絵文字を説明文にマッピングするファイルです。<br/>
-                                形式: 絵文字[タブ]説明文（例: 😀	grinning face）<br/>
-                                Mapping file for 3,000+ emojis to text descriptions.<br/>
-                                Format: emoji[tab]description (e.g., 😀	grinning face)
-                            </p>
-                            <label class="cursor-pointer inline-block">
-                                <span class="text-blue-600 hover:text-blue-800 font-semibold">
-                                    😀 emoji_utf8_lexicon.txt を選択 / Select emoji_utf8_lexicon.txt
-                                </span>
-                                <input type="file" id="emoji-file" accept=".txt" class="hidden">
-                            </label>
-                            <div class="mt-2 text-xs">
-                                <a href="https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/emoji_utf8_lexicon.txt"
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   class="text-blue-600 hover:underline">
-                                    📥 GitHubからダウンロード / Download from GitHub
-                                </a>
-                            </div>
-                            <div id="emoji-loaded" class="hidden mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <div id="notification" class="hidden mb-4 p-4 rounded-xl text-sm"></div>
 
-            <div id="stats-section" class="hidden grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div class="border rounded-lg p-4">
-                    <div class="text-blue-600 mb-2">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                    </div>
-                    <div class="text-sm text-gray-600 mb-1">総単語数 / Total Words</div>
-                    <div id="stat-total" class="text-xl font-bold">0</div>
-                </div>
-                <div class="border rounded-lg p-4">
-                    <div class="text-green-600 mb-2">↗</div>
-                    <div class="text-sm text-gray-600 mb-1">ポジティブ / Positive</div>
-                    <div id="stat-positive" class="text-xl font-bold text-green-600">0</div>
-                </div>
-                <div class="border rounded-lg p-4">
-                    <div class="text-red-600 mb-2">↘</div>
-                    <div class="text-sm text-gray-600 mb-1">ネガティブ / Negative</div>
-                    <div id="stat-negative" class="text-xl font-bold text-red-600">0</div>
-                </div>
-                <div class="border rounded-lg p-4">
-                    <div class="text-gray-600 mb-2">—</div>
-                    <div class="text-sm text-gray-600 mb-1">中立 / Neutral</div>
-                    <div id="stat-neutral" class="text-xl font-bold text-gray-600">0</div>
-                </div>
-            </div>
-
-            <div id="tabs-section" class="hidden">
-                <div class="border-b mb-6">
-                    <div class="flex space-x-4">
-                        <button class="tab-btn pb-2 px-4 font-semibold border-b-2 border-blue-600 text-blue-600" data-tab="analyze">
-                            テキスト分析 / Text Analysis
+                <div id="tabs-section" class="hidden">
+                    <div class="inline-flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1 mb-6">
+                        <button class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition" data-tab="analyze">
+                            <span class="lang-ja">テキスト分析</span>
+                            <span class="lang-en">Text Analysis</span>
                         </button>
-                        <button class="tab-btn pb-2 px-4 font-semibold text-gray-500 hover:text-gray-700" data-tab="search">
-                            レキシコン検索 / Lexicon Search
+                        <button class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition" data-tab="search">
+                            <span class="lang-ja">レキシコン検索</span>
+                            <span class="lang-en">Lexicon Search</span>
                         </button>
-                        <button class="tab-btn pb-2 px-4 font-semibold text-gray-500 hover:text-gray-700" data-tab="stats">
-                            レキシコン統計 / Lexicon Statistics
+                        <button class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition" data-tab="stats">
+                            <span class="lang-ja">レキシコン統計</span>
+                            <span class="lang-en">Lexicon Statistics</span>
                         </button>
                     </div>
-                </div>
 
-                <div id="analyze-tab" class="tab-content">
-                    <h3 class="font-semibold mb-2">分析するテキストを入力 / Enter text to analyze</h3>
-                    <textarea id="text-input" class="w-full border rounded p-3 mb-4 min-h-32" placeholder="Enter text to analyze sentiment..."></textarea>
-
-                    <div class="mb-4">
-                        <label class="flex items-center space-x-2 mb-3 cursor-pointer">
-                            <input type="checkbox" id="split-sentences-checkbox" class="w-4 h-4">
-                            <span class="text-sm font-semibold">
-                                📄 文ごとに分析 / Analyze by sentence
-                                <span class="text-xs font-normal text-gray-600 ml-2">(VADER論文推奨 / Recommended by VADER paper)</span>
-                            </span>
+                    <div id="analyze-tab" class="tab-content">
+                        <label class="block font-semibold mb-2" for="text-input">
+                            <span class="lang-ja">分析するテキストを入力</span>
+                            <span class="lang-en">Enter text to analyze</span>
                         </label>
-                        <p class="text-sm text-gray-600 mb-2">サンプル文 / Sample texts:</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">I love this product, it's amazing!</button>
-                            <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">The movie was okay, nothing special.</button>
-                            <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">I don't like this at all, it's very bad.</button>
-                            <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">This is not bad, actually quite good!</button>
-                            <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">The book offers fascinating ideas but sadly fails in its delivery.</button>
-                            <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">I love this product! It's amazing! The quality is excellent!</button>
-                            <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">I'm so happy 😊 This is amazing! 🎉</button>
-                            <button class="sample-btn text-sm px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-left">The product is great. But the shipping was terrible!</button>
+                        <textarea id="text-input" class="w-full rounded-xl border border-slate-300 p-4 mb-4 min-h-32 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition"></textarea>
+
+                        <div class="mb-5">
+                            <label class="flex items-center space-x-2 mb-4 cursor-pointer">
+                                <input type="checkbox" id="split-sentences-checkbox" class="w-4 h-4 accent-blue-600">
+                                <span class="text-sm font-semibold">
+                                    <span class="lang-ja">文ごとに分析</span>
+                                    <span class="lang-en">Analyze by sentence</span>
+                                    <span class="text-xs font-normal text-slate-500 ml-2">
+                                        <span class="lang-ja">（VADER論文推奨）</span>
+                                        <span class="lang-en">(recommended by the VADER paper)</span>
+                                    </span>
+                                </span>
+                            </label>
+                            <p class="text-xs font-semibold tracking-wide text-slate-500 uppercase mb-2">
+                                <span class="lang-ja">サンプル文</span>
+                                <span class="lang-en">Sample texts</span>
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <button class="sample-btn text-sm px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition text-left">I love this product, it's amazing!</button>
+                                <button class="sample-btn text-sm px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition text-left">The movie was okay, nothing special.</button>
+                                <button class="sample-btn text-sm px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition text-left">I don't like this at all, it's very bad.</button>
+                                <button class="sample-btn text-sm px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition text-left">This is not bad, actually quite good!</button>
+                                <button class="sample-btn text-sm px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition text-left">Sentiment analysis has never been this good!</button>
+                                <button class="sample-btn text-sm px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition text-left">I'm so happy 😊 This is amazing! 🎉</button>
+                                <button class="sample-btn text-sm px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50 transition text-left">The product is great. But the shipping was terrible!</button>
+                            </div>
+                        </div>
+
+                        <button id="analyze-btn" class="w-full sm:w-auto rounded-xl bg-blue-600 px-8 py-3 text-white font-semibold shadow-sm hover:bg-blue-700 active:bg-blue-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:bg-slate-300 disabled:cursor-not-allowed transition">
+                            <span class="lang-ja">分析する</span>
+                            <span class="lang-en">Analyze</span>
+                        </button>
+
+                        <div id="result-container" class="hidden mt-8 rounded-2xl ring-1 ring-slate-200 p-5 sm:p-8 bg-white">
+                            <div id="sentence-mode-results"></div>
+                            <div id="single-mode-results">
+                                <h2 class="text-xl font-bold tracking-tight mb-6">
+                                    <span class="lang-ja">分析結果</span>
+                                    <span class="lang-en">Analysis Results</span>
+                                </h2>
+
+                                <div class="mb-8">
+                                    <div class="text-center mb-2">
+                                        <div class="text-xs font-semibold tracking-wide text-slate-500 uppercase mb-2">
+                                            <span class="lang-ja">感情強度 (Compound Score)</span>
+                                            <span class="lang-en">Sentiment Intensity (Compound Score)</span>
+                                        </div>
+                                        <div id="compound-score-display" class="text-4xl sm:text-6xl font-bold tabular-nums tracking-tight mb-3">0.0000</div>
+                                        <span id="sentiment-label" class="inline-block px-4 py-1.5 rounded-full text-white text-sm font-semibold"></span>
+                                        <p id="punct-emphasis" class="hidden text-xs text-slate-500 mt-3"></p>
+                                    </div>
+                                    <div class="relative mt-8 mx-1">
+                                        <div class="h-2.5 rounded-full bg-gradient-to-r from-red-500 via-slate-300 to-green-500"></div>
+                                        <div id="sentiment-marker" class="sentiment-marker absolute -top-1.5 h-5 w-5 -ml-2.5 rounded-full bg-white ring-4 ring-slate-400 shadow"></div>
+                                        <div class="flex justify-between text-xs text-slate-400 mt-2 tabular-nums"><span>-1.0</span><span>0</span><span>+1.0</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+                                    <div class="rounded-xl ring-1 ring-slate-200 p-4 flex items-center justify-between sm:block sm:text-center">
+                                        <div class="text-xs sm:text-sm text-slate-500 sm:mb-1">
+                                            <span class="lang-ja">ポジティブ</span>
+                                            <span class="lang-en">Positive</span>
+                                        </div>
+                                        <div id="pos-score" class="text-lg sm:text-2xl font-bold tabular-nums text-green-700">0%</div>
+                                    </div>
+                                    <div class="rounded-xl ring-1 ring-slate-200 p-4 flex items-center justify-between sm:block sm:text-center">
+                                        <div class="text-xs sm:text-sm text-slate-500 sm:mb-1">
+                                            <span class="lang-ja">中立</span>
+                                            <span class="lang-en">Neutral</span>
+                                        </div>
+                                        <div id="neu-score" class="text-lg sm:text-2xl font-bold tabular-nums text-slate-600">0%</div>
+                                    </div>
+                                    <div class="rounded-xl ring-1 ring-slate-200 p-4 flex items-center justify-between sm:block sm:text-center">
+                                        <div class="text-xs sm:text-sm text-slate-500 sm:mb-1">
+                                            <span class="lang-ja">ネガティブ</span>
+                                            <span class="lang-en">Negative</span>
+                                        </div>
+                                        <div id="neg-score" class="text-lg sm:text-2xl font-bold tabular-nums text-red-700">0%</div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-8">
+                                    <h3 class="font-semibold mb-2">
+                                        <span class="lang-ja">感情表現のハイライト</span>
+                                        <span class="lang-en">Sentiment Highlights</span>
+                                    </h3>
+                                    <div id="highlighted-text" class="bg-slate-50 rounded-xl p-4 leading-relaxed"></div>
+                                    <div id="highlight-legend" class="mt-3"></div>
+                                </div>
+
+                                <div>
+                                    <h3 class="font-semibold mb-2">
+                                        <span class="lang-ja">詳細単語分析</span>
+                                        <span class="lang-en">Detailed Token Analysis</span>
+                                    </h3>
+                                    <div class="overflow-x-auto rounded-xl ring-1 ring-slate-200">
+                                        <table class="w-full text-sm">
+                                            <thead>
+                                                <tr class="bg-slate-50 text-slate-600">
+                                                    <th class="p-3 text-left font-semibold whitespace-nowrap"><span class="lang-ja">単語</span><span class="lang-en">Token</span></th>
+                                                    <th class="p-3 font-semibold whitespace-nowrap"><span class="lang-ja">元スコア</span><span class="lang-en">Original</span></th>
+                                                    <th class="p-3 font-semibold whitespace-nowrap"><span class="lang-ja">調整後</span><span class="lang-en">Adjusted</span></th>
+                                                    <th class="p-3 text-left font-semibold whitespace-nowrap"><span class="lang-ja">調整内容</span><span class="lang-en">Adjustments</span></th>
+                                                    <th class="p-3 font-semibold whitespace-nowrap"><span class="lang-ja">標準偏差</span><span class="lang-en">Std Dev</span></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="token-table" class="divide-y divide-slate-100"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <button id="analyze-btn" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed">
-                        分析する / Analyze
-                    </button>
+                    <div id="search-tab" class="tab-content hidden">
+                        <div class="mb-4">
+                            <input type="text" id="search-input" class="w-full rounded-xl border border-slate-300 p-4 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition">
+                        </div>
+                        <div id="search-results" class="rounded-xl ring-1 ring-slate-200 max-h-96 overflow-y-auto">
+                            <div class="p-8 text-center text-slate-500">
+                                <span class="lang-ja">キーワードを入力してください</span>
+                                <span class="lang-en">Enter keywords to search</span>
+                            </div>
+                        </div>
+                    </div>
 
-                    <div id="result-container" class="hidden mt-8 border rounded-lg p-6">
-                        <div id="sentence-mode-results"></div>
-                        <div id="single-mode-results">
-                            <h2 class="text-xl font-bold mb-4">分析結果 / Analysis Results</h2>
+                    <div id="stats-tab" class="tab-content hidden">
+                        <h3 class="text-xl font-bold tracking-tight mb-6">
+                            <span class="lang-ja">レキシコン統計とレポート</span>
+                            <span class="lang-en">Lexicon Statistics and Report</span>
+                        </h3>
 
-                            <div class="mb-6">
-                                <div class="text-center mb-4">
-                                    <div class="text-sm font-semibold text-gray-600 mb-2">感情強度 / Sentiment Intensity (Compound Score)</div>
-                                    <div id="compound-score-display" class="text-5xl font-bold mb-2">0.0000</div>
-                                    <span id="sentiment-label" class="inline-block px-4 py-2 rounded text-white text-base font-semibold"></span>
-                                </div>
-                                <div class="h-6 bg-gray-200 rounded-full overflow-hidden">
-                                    <div id="sentiment-bar" class="sentiment-bar h-full bg-gradient-to-r from-red-600 via-gray-400 to-green-600"></div>
+                        <div class="mb-10">
+                            <h4 class="font-semibold mb-3">
+                                <span class="lang-ja">感情スコア分布</span>
+                                <span class="lang-en">Sentiment Score Distribution</span>
+                            </h4>
+                            <div class="bg-slate-50 rounded-xl p-4">
+                                <div id="distribution-chart" class="flex items-end h-64 gap-1"></div>
+                                <div class="flex justify-between text-xs text-slate-500 mt-2">
+                                    <span><span class="lang-ja">-4.0（最もネガティブ）</span><span class="lang-en">-4.0 (most negative)</span></span>
+                                    <span><span class="lang-ja">0.0（中立）</span><span class="lang-en">0.0 (neutral)</span></span>
+                                    <span><span class="lang-ja">+4.0（最もポジティブ）</span><span class="lang-en">+4.0 (most positive)</span></span>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="grid grid-cols-3 gap-4 mb-6">
-                                <div class="border rounded p-3 text-center">
-                                    <div class="text-sm text-gray-600">ポジティブ / Positive</div>
-                                    <div id="pos-score" class="text-2xl font-bold text-green-600">0%</div>
-                                </div>
-                                <div class="border rounded p-3 text-center">
-                                    <div class="text-sm text-gray-600">中立 / Neutral</div>
-                                    <div id="neu-score" class="text-2xl font-bold text-gray-600">0%</div>
-                                </div>
-                                <div class="border rounded p-3 text-center">
-                                    <div class="text-sm text-gray-600">ネガティブ / Negative</div>
-                                    <div id="neg-score" class="text-2xl font-bold text-red-600">0%</div>
-                                </div>
-                            </div>
+                        <div class="mb-10">
+                            <h4 class="font-semibold mb-3">
+                                <span class="lang-ja">最もポジティブな単語（上位20語）</span>
+                                <span class="lang-en">Most Positive Words (Top 20)</span>
+                            </h4>
+                            <div id="top-positive" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8"></div>
 
-                            <div class="mb-6">
-                                <h3 class="font-semibold mb-2">感情表現のハイライト / Sentiment Highlights</h3>
-                                <div id="highlighted-text" class="bg-gray-50 p-4 rounded leading-relaxed"></div>
-                            </div>
+                            <h4 class="font-semibold mb-3">
+                                <span class="lang-ja">最もネガティブな単語（上位20語）</span>
+                                <span class="lang-en">Most Negative Words (Top 20)</span>
+                            </h4>
+                            <div id="top-negative" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+                        </div>
 
-                            <div>
-                                <h3 class="font-semibold mb-2">詳細単語分析 / Detailed Token Analysis</h3>
-                                <div class="overflow-x-auto">
-                                    <table class="w-full border-collapse text-sm">
-                                        <thead>
-                                            <tr class="bg-gray-100">
-                                                <th class="border p-2 text-left">単語 / Token</th>
-                                                <th class="border p-2">元スコア / Original</th>
-                                                <th class="border p-2">調整後 / Adjusted</th>
-                                                <th class="border p-2 text-left">調整内容 / Adjustments</th>
-                                                <th class="border p-2">標準偏差 / Std Dev</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="token-table"></tbody>
-                                    </table>
-                                </div>
-                            </div>
+                        <div>
+                            <h4 class="font-semibold mb-3">
+                                <span class="lang-ja">標準偏差の分析</span>
+                                <span class="lang-en">Standard Deviation Analysis</span>
+                            </h4>
+                            <p class="text-sm text-slate-600 mb-3">
+                                <span class="lang-ja">標準偏差が高い単語は、評価者によって評価が分かれる単語です。</span>
+                                <span class="lang-en">Words with high standard deviation received varying ratings among human raters.</span>
+                            </p>
+                            <div id="high-stddev" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
                         </div>
                     </div>
                 </div>
 
-                <div id="search-tab" class="tab-content hidden">
-                    <div class="mb-4">
-                        <input type="text" id="search-input" placeholder="単語・記号を検索... / Search words or symbols..." class="w-full border rounded p-3">
-                    </div>
-                    <div id="search-results" class="border rounded max-h-96 overflow-y-auto">
-                        <div class="p-8 text-center text-gray-500">
-                            キーワードを入力してください / Enter keywords to search
-                        </div>
-                    </div>
-                </div>
+                <section id="file-upload-section" class="mt-10 space-y-3">
+                    <h2 class="text-sm font-semibold tracking-wide text-slate-500 uppercase">
+                        <span class="lang-ja">レキシコン設定</span>
+                        <span class="lang-en">Lexicon Settings</span>
+                    </h2>
 
-                <div id="stats-tab" class="tab-content hidden">
-                    <h3 class="text-xl font-bold mb-4">レキシコン統計とレポート / Lexicon Statistics and Report</h3>
-
-                    <div class="mb-8">
-                        <h4 class="font-semibold mb-3">感情スコア分布 / Sentiment Score Distribution</h4>
-                        <div class="bg-gray-50 p-4 rounded">
-                            <div id="distribution-chart" class="flex items-end h-64 gap-1"></div>
-                            <div class="flex justify-between text-xs text-gray-600 mt-2">
-                                <span>-4.0 (最もネガティブ / Most Negative)</span>
-                                <span>0.0 (中立 / Neutral)</span>
-                                <span>4.0 (最もポジティブ / Most Positive)</span>
+                    <div class="rounded-xl ring-1 ring-slate-200 bg-white p-5 hover:ring-blue-300 transition">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold">
+                                    <span class="required-badge text-red-600 lang-ja">【必須】</span><span class="lang-ja">VADERレキシコンファイル</span>
+                                    <span class="required-badge text-red-600 lang-en">[Required]</span><span class="lang-en">VADER Lexicon File</span>
+                                </h3>
+                                <p class="text-sm text-slate-600 mt-1 mb-3">
+                                    <span class="lang-ja">約7,500語の感情語彙を含むメインのレキシコンです。ウェブ版では同梱のファイルが自動で読み込まれるため、別のレキシコンを使う場合のみ選択してください。</span>
+                                    <span class="lang-en">Main lexicon containing approximately 7,500 sentiment words. In the web version the bundled file loads automatically; select a file only to use a different lexicon.</span>
+                                </p>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <label class="cursor-pointer inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-blue-700 ring-1 ring-blue-200 hover:bg-blue-50 transition">
+                                        <span class="lang-ja">vader_lexicon.txt を選択</span>
+                                        <span class="lang-en">Select vader_lexicon.txt</span>
+                                        <input type="file" id="lexicon-file" accept=".txt" class="hidden">
+                                    </label>
+                                    <a href="https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/vader_lexicon.txt"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="text-xs text-blue-700 hover:underline inline-flex items-center gap-1">
+                                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                        </svg>
+                                        <span class="lang-ja">オリジナルの配布元</span>
+                                        <span class="lang-en">Original source</span>
+                                    </a>
+                                </div>
+                                <div id="lexicon-loaded" class="hidden mt-3 p-3 rounded-lg bg-green-50 ring-1 ring-green-200 text-sm text-green-800"></div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mb-8">
-                        <h4 class="font-semibold mb-3">最もポジティブな単語 / Most Positive Words (Top 20)</h4>
-                        <div id="top-positive" class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"></div>
-
-                        <h4 class="font-semibold mb-3">最もネガティブな単語 / Most Negative Words (Top 20)</h4>
-                        <div id="top-negative" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+                    <div class="rounded-xl ring-1 ring-slate-200 bg-white p-5 hover:ring-blue-300 transition">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm5.25 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold">
+                                    <span class="text-blue-600 lang-ja">【オプション】</span><span class="lang-ja">絵文字レキシコン</span>
+                                    <span class="text-blue-600 lang-en">[Optional]</span><span class="lang-en">Emoji Lexicon</span>
+                                </h3>
+                                <p class="text-sm text-slate-600 mt-1 mb-3">
+                                    <span class="lang-ja">約3,000種類以上の絵文字を説明文にマッピングするファイルです。ウェブ版では同梱のファイルが自動で読み込まれます。形式: 絵文字[タブ]説明文（例: 😀	grinning face）</span>
+                                    <span class="lang-en">Mapping file for 3,000+ emojis to text descriptions. In the web version the bundled file loads automatically. Format: emoji[tab]description (e.g., 😀	grinning face)</span>
+                                </p>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <label class="cursor-pointer inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-blue-700 ring-1 ring-blue-200 hover:bg-blue-50 transition">
+                                        <span class="lang-ja">emoji_utf8_lexicon.txt を選択</span>
+                                        <span class="lang-en">Select emoji_utf8_lexicon.txt</span>
+                                        <input type="file" id="emoji-file" accept=".txt" class="hidden">
+                                    </label>
+                                    <a href="https://github.com/cjhutto/vaderSentiment/blob/master/vaderSentiment/emoji_utf8_lexicon.txt"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="text-xs text-blue-700 hover:underline inline-flex items-center gap-1">
+                                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                                        </svg>
+                                        <span class="lang-ja">オリジナルの配布元</span>
+                                        <span class="lang-en">Original source</span>
+                                    </a>
+                                </div>
+                                <div id="emoji-loaded" class="hidden mt-3 p-3 rounded-lg bg-blue-50 ring-1 ring-blue-200 text-sm text-blue-800"></div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                        <h4 class="font-semibold mb-3">標準偏差の分析 / Standard Deviation Analysis</h4>
-                        <p class="text-sm text-gray-600 mb-3">
-                            標準偏差が高い単語は、人によって評価が分かれる単語です。<br/>
-                            Words with high standard deviation have varying ratings among people.
+                    <div id="stats-section" class="hidden grid grid-cols-2 md:grid-cols-4 gap-3 pt-1">
+                        <div class="rounded-xl ring-1 ring-slate-200 p-4">
+                            <div class="text-xs text-slate-500 mb-1">
+                                <span class="lang-ja">総単語数</span>
+                                <span class="lang-en">Total Words</span>
+                            </div>
+                            <div id="stat-total" class="text-lg font-bold tabular-nums">0</div>
+                        </div>
+                        <div class="rounded-xl ring-1 ring-slate-200 p-4">
+                            <div class="text-xs text-slate-500 mb-1">
+                                <span class="lang-ja">ポジティブ</span>
+                                <span class="lang-en">Positive</span>
+                            </div>
+                            <div id="stat-positive" class="text-lg font-bold tabular-nums text-green-700">0</div>
+                        </div>
+                        <div class="rounded-xl ring-1 ring-slate-200 p-4">
+                            <div class="text-xs text-slate-500 mb-1">
+                                <span class="lang-ja">ネガティブ</span>
+                                <span class="lang-en">Negative</span>
+                            </div>
+                            <div id="stat-negative" class="text-lg font-bold tabular-nums text-red-700">0</div>
+                        </div>
+                        <div class="rounded-xl ring-1 ring-slate-200 p-4">
+                            <div class="text-xs text-slate-500 mb-1">
+                                <span class="lang-ja">中立</span>
+                                <span class="lang-en">Neutral</span>
+                            </div>
+                            <div id="stat-neutral" class="text-lg font-bold tabular-nums text-slate-600">0</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="mt-10 space-y-3">
+                    <h2 class="text-sm font-semibold tracking-wide text-slate-500 uppercase">
+                        <span class="lang-ja">このツールについて</span>
+                        <span class="lang-en">About This Tool</span>
+                    </h2>
+
+                    <div class="rounded-xl bg-blue-50/60 ring-1 ring-blue-100 p-5">
+                        <h3 class="font-bold text-blue-900 mb-2">
+                            <span class="lang-ja">VADERについて</span>
+                            <span class="lang-en">About VADER</span>
+                        </h3>
+                        <p class="text-sm text-slate-700">
+                            <span class="lang-ja"><strong>VADER (Valence Aware Dictionary and sEntiment Reasoner)</strong> は、ソーシャルメディアテキストの感情分析のために開発された辞書・ルールベースの感情分析手法です（Hutto &amp; Gilbert, 2014）。本ツールはその本家Python実装（vaderSentiment 3.3.2）をブラウザ向けに移植したもので、出力が本家と一致することを自動テストで検証しています。</span>
+                            <span class="lang-en"><strong>VADER (Valence Aware Dictionary and sEntiment Reasoner)</strong> is a lexicon and rule-based sentiment analysis method attuned to sentiments expressed in social media (Hutto &amp; Gilbert, 2014). This tool is a browser port of the reference Python implementation (vaderSentiment 3.3.2), with automated tests verifying that its output matches the reference.</span>
                         </p>
-                        <div id="high-stddev" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+                        <div class="grid sm:grid-cols-2 gap-x-6 gap-y-2 mt-4">
+                            <div class="flex items-start gap-2 text-sm text-slate-700">
+                                <svg class="text-blue-600 flex-shrink-0 mt-0.5" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                <span><span class="lang-ja">記号・エモーティコンを含む全語彙に対応</span><span class="lang-en">Full lexicon support, including symbols and emoticons</span></span>
+                            </div>
+                            <div class="flex items-start gap-2 text-sm text-slate-700">
+                                <svg class="text-blue-600 flex-shrink-0 mt-0.5" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                <span><span class="lang-ja">否定・強調語・大文字・句読点による強度調整</span><span class="lang-en">Negation, boosters, ALL CAPS, and punctuation adjustments</span></span>
+                            </div>
+                            <div class="flex items-start gap-2 text-sm text-slate-700">
+                                <svg class="text-blue-600 flex-shrink-0 mt-0.5" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                <span><span class="lang-ja">単語ごとのスコア調整過程を可視化</span><span class="lang-en">Visualizes the score adjustment process per word</span></span>
+                            </div>
+                            <div class="flex items-start gap-2 text-sm text-slate-700">
+                                <svg class="text-blue-600 flex-shrink-0 mt-0.5" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                                <span><span class="lang-ja">絵文字の説明文変換・文ごとの分析に対応</span><span class="lang-en">Emoji-to-text conversion and sentence-level analysis</span></span>
+                            </div>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="rounded-xl ring-1 ring-slate-200 bg-slate-50 p-5">
+                        <h3 class="font-bold text-slate-900 mb-2">
+                            <span class="lang-ja">クレジット・引用情報</span>
+                            <span class="lang-en">Credits &amp; Citation</span>
+                        </h3>
+                        <p class="text-sm text-slate-700 mb-3">
+                            <span class="lang-ja">© 2025 Nozomi Sawada — このツールは<strong>VADER (Hutto &amp; Gilbert, 2014)</strong>アルゴリズムの実装です。</span>
+                            <span class="lang-en">© 2025 Nozomi Sawada — This tool implements the <strong>VADER (Hutto &amp; Gilbert, 2014)</strong> algorithm.</span>
+                        </p>
+                        <div class="bg-white p-4 rounded-lg ring-1 ring-slate-200">
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                                <span class="lang-ja">引用文献</span>
+                                <span class="lang-en">Citation</span>
+                            </p>
+                            <p class="text-xs font-mono text-slate-700 leading-relaxed">
+                                Hutto, C.J. &amp; Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for
+                                Sentiment Analysis of Social Media Text. Eighth International Conference on
+                                Weblogs and Social Media (ICWSM-14). Ann Arbor, MI, June 2014.
+                            </p>
+                        </div>
+                    </div>
+                </section>
             </div>
 
-            <div class="bg-gray-50 border border-gray-300 rounded p-4 mt-8">
-                <h3 class="font-bold text-gray-900 mb-3">📖 クレジット・引用情報 / Credits & Citation</h3>
-
-                <div class="bg-blue-50 p-4 rounded border-l-4 border-blue-500 mb-4">
-                    <p class="mb-2"><strong>© 2025 Nozomi Sawada. All rights reserved.</strong></p>
-                    <p class="text-sm text-gray-700">
-                        このツールは<strong>VADER (Hutto & Gilbert, 2014)</strong>アルゴリズムを実装したものです。<br/>
-                        This tool implements the <strong>VADER (Hutto & Gilbert, 2014)</strong> algorithm.
-                    </p>
-                </div>
-
-                <div class="bg-white p-3 rounded border mb-2">
-                    <p class="text-sm font-semibold mb-1">引用文献 / Citation:</p>
-                    <p class="text-xs font-mono">
-                        Hutto, C.J. & Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for<br/>
-                        Sentiment Analysis of Social Media Text. Eighth International Conference on<br/>
-                        Weblogs and Social Media (ICWSM-14). Ann Arbor, MI, June 2014.
-                    </p>
-                </div>
-            </div>
+            <footer class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 px-2">
+                <span>Version 1.0.0 · MIT License</span>
+                <a href="https://github.com/nozomi-sawada/vader-sentiment-analyzer"
+                   target="_blank" rel="noopener noreferrer"
+                   class="inline-flex items-center gap-1.5 hover:text-slate-900 transition">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+                    GitHub
+                </a>
+            </footer>
         </div>
     </div>
 
-    <script>
-        // ============================================================================
-        // SECURITY: Safe DOM construction utilities
-        // ============================================================================
-
-        /**
-         * Safely creates a DOM element with properties and children
-         * @param {string} tag - HTML tag name
-         * @param {Object} props - Properties to set (use 'text' for textContent)
-         * @param {Array} children - Child elements
-         * @returns {HTMLElement}
-         */
-        function el(tag, props = {}, children = []) {
-            const node = document.createElement(tag);
-
-            for (const [key, value] of Object.entries(props)) {
-                if (key === 'text') {
-                    // Safe: textContent automatically escapes HTML
-                    node.textContent = value;
-                } else if (key === 'class') {
-                    node.className = value;
-                } else if (key === 'style') {
-                    node.setAttribute('style', value);
-                } else {
-                    // Safe: setAttribute with user data
-                    node.setAttribute(key, value);
-                }
-            }
-
-            for (const child of children) {
-                if (child) {
-                    node.appendChild(child);
-                }
-            }
-
-            return node;
-        }
-
-        /**
-         * Safely clears container and appends children
-         * @param {HTMLElement} container
-         * @param {Array} children
-         */
-        function setChildren(container, children) {
-            container.textContent = ''; // Safe clear
-            for (const child of children) {
-                if (child) {
-                    container.appendChild(child);
-                }
-            }
-        }
-
-        /**
-         * Debounce function for performance optimization
-         * @param {Function} fn - Function to debounce
-         * @param {number} wait - Delay in milliseconds
-         * @returns {Function}
-         */
-        function debounce(fn, wait = 300) {
-            let timeout;
-            return function(...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => fn.apply(this, args), wait);
-            };
-        }
-
-        // ============================================================================
-        // Application State
-        // ============================================================================
-
-        let vaderLexicon = {};
-        let emojiLexicon = {};
-        let lexiconStats = null;
-
-        const NEGATION_WORDS = new Set([
-            "not", "no", "never", "none", "nobody", "nothing", "neither", "nowhere", "hardly",
-            "scarcely", "barely", "don't", "doesn't", "didn't", "won't", "wouldn't", "couldn't",
-            "can't", "cannot", "isn't", "ain't", "hasn't", "haven't", "hadn't", "shouldn't",
-            "weren't", "mightn't", "mustn't", "needn't", "shan't", "oughtn't"
-        ]);
-
-        const BOOSTER_DICT = {
-            "absolutely": 0.293, "amazingly": 0.293, "awfully": 0.293, "completely": 0.293,
-            "considerably": 0.293, "decidedly": 0.293, "deeply": 0.293, "effing": 0.293,
-            "enormously": 0.293, "entirely": 0.293, "especially": 0.293, "exceptionally": 0.293,
-            "extremely": 0.293, "fabulously": 0.293, "flipping": 0.293, "flippin": 0.293,
-            "frackin": 0.293, "fracking": 0.293, "fricking": 0.293, "frickin": 0.293,
-            "frigging": 0.293, "friggin": 0.293, "fully": 0.293, "fucking": 0.293,
-            "greatly": 0.293, "hella": 0.293, "highly": 0.293, "hugely": 0.293,
-            "incredibly": 0.293, "intensely": 0.293, "majorly": 0.293, "more": 0.293,
-            "most": 0.293, "particularly": 0.293, "purely": 0.293, "quite": 0.293,
-            "really": 0.293, "remarkably": 0.293, "so": 0.293, "substantially": 0.293,
-            "thoroughly": 0.293, "totally": 0.293, "tremendously": 0.293, "uber": 0.293,
-            "unbelievably": 0.293, "unusually": 0.293, "utterly": 0.293, "very": 0.293,
-            "almost": -0.293, "barely": -0.293, "hardly": -0.293, "just enough": -0.293,
-            "kind of": -0.293, "kinda": -0.293, "kindof": -0.293, "kind-of": -0.293,
-            "less": -0.293, "little": -0.293, "marginal": -0.293, "marginally": -0.293,
-            "occasional": -0.293, "occasionally": -0.293, "partly": -0.293,
-            "scarce": -0.293, "scarcely": -0.293, "slight": -0.293, "slightly": -0.293,
-            "somewhat": -0.293, "sort of": -0.293, "sorta": -0.293, "sortof": -0.293,
-            "sort-of": -0.293
-        };
-
-        const N_SCALAR = -0.74;
-        const C_INCR = 0.733;
-        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit
-
-        // ============================================================================
-        // UI Helper Functions
-        // ============================================================================
-
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = 'mb-4 p-4 rounded ' + (
-                type === 'success' ? 'bg-green-100 text-green-800' :
-                type === 'error' ? 'bg-red-100 text-red-800' :
-                'bg-blue-100 text-blue-800'
-            );
-            notification.classList.remove('hidden');
-            setTimeout(() => notification.classList.add('hidden'), 5000);
-        }
-
-        // ============================================================================
-        // File Parsing Functions
-        // ============================================================================
-
-        function parseLexicon(content) {
-            const lines = content.split('\n');
-            const newLexicon = {};
-            let stats = {
-                total: 0,
-                positive: 0,
-                negative: 0,
-                neutral: 0,
-                sumScore: 0,
-                minScore: Infinity,
-                maxScore: -Infinity
-            };
-
-            lines.forEach(line => {
-                const trimmed = line.trim();
-                if (!trimmed) return;
-
-                try {
-                    const parts = trimmed.split(/\s+/);
-                    if (parts.length < 3) return;
-
-                    const token = parts[0];
-                    const score = parseFloat(parts[1]);
-                    const stdDev = parseFloat(parts[2]);
-
-                    let ratings = [];
-                    const ratingsMatch = trimmed.match(/\[([^\]]+)\]/);
-                    if (ratingsMatch) {
-                        ratings = ratingsMatch[1].split(',').map(r => parseFloat(r.trim())).filter(n => !isNaN(n));
-                    }
-
-                    if (isNaN(score) || isNaN(stdDev)) return;
-
-                    newLexicon[token] = { score, stdDev, ratings };
-
-                    stats.total++;
-                    stats.sumScore += score;
-                    stats.minScore = Math.min(stats.minScore, score);
-                    stats.maxScore = Math.max(stats.maxScore, score);
-
-                    if (score > 0.05) stats.positive++;
-                    else if (score < -0.05) stats.negative++;
-                    else stats.neutral++;
-
-                } catch (error) {
-                    console.error('Parse error:', error);
-                }
-            });
-
-            stats.avgScore = stats.total > 0 ? stats.sumScore / stats.total : 0;
-            return { lexicon: newLexicon, stats };
-        }
-
-        function parseEmojiLexicon(content) {
-            const lines = content.split('\n');
-            const newLexicon = {};
-            let count = 0;
-
-            lines.forEach(line => {
-                const trimmed = line.trim();
-                if (!trimmed) return;
-
-                try {
-                    const parts = trimmed.split(/\t+/);
-
-                    if (parts.length >= 2) {
-                        const emoji = parts[0].trim();
-                        const description = parts[1].trim();
-                        newLexicon[emoji] = description;
-                        count++;
-                    }
-
-                } catch (error) {
-                    console.error('Parse error:', error);
-                }
-            });
-
-            return { lexicon: newLexicon, count };
-        }
-
-        // ============================================================================
-        // Text Processing Functions
-        // ============================================================================
-
-        function splitIntoSentences(text) {
-            // Protect abbreviations
-            const protectedText = text
-                .replace(/\b(Mr|Mrs|Ms|Dr|Prof|Sr|Jr|vs|etc|Inc|Ltd|Corp|Co)\./gi, '$1<PERIOD>')
-                .replace(/\b([A-Z])\./g, '$1<PERIOD>');
-
-            // Split sentences
-            const sentences = protectedText
-                .split(/([.!?]+\s+)/)
-                .reduce((acc, part, i, arr) => {
-                    if (i % 2 === 0) {
-                        const sentence = (part + (arr[i + 1] || '')).trim();
-                        if (sentence.length > 0) {
-                            acc.push(sentence.replace(/<PERIOD>/g, '.'));
-                        }
-                    }
-                    return acc;
-                }, []);
-
-            return sentences.filter(s => s.length > 0);
-        }
-
-        function tokenize(text) {
-            const tokens = [];
-            const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}]/u;
-            const regex = /(!+|\?+|[:()\[\]{}<>*\-_|\\\/]+|[\w']+|[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}])/gu;
-            let match;
-
-            while ((match = regex.exec(text)) !== null) {
-                const token = match[0];
-                tokens.push({
-                    text: token,
-                    index: match.index,
-                    lower: token.toLowerCase(),
-                    isEmoji: emojiRegex.test(token)
-                });
-            }
-
-            return tokens;
-        }
-
-        function allCapDifferential(tokens) {
-            let allCapCount = 0;
-            tokens.forEach(t => {
-                if (/[A-Z]/.test(t.text) && t.text === t.text.toUpperCase()) {
-                    allCapCount++;
-                }
-            });
-            return allCapCount > 0 && allCapCount < tokens.length;
-        }
-
-        // ============================================================================
-        // Sentiment Analysis Core
-        // ============================================================================
-
-        function analyzeSentiment(text) {
-            if (!text.trim()) return null;
-
-            const tokens = tokenize(text);
-            let sentiments = [];
-            const isCapDiff = allCapDifferential(tokens);
-
-            let butIndex = -1;
-            tokens.forEach((token, i) => {
-                if (token.lower === 'but') {
-                    butIndex = i;
-                }
-            });
-
-            tokens.forEach((token, i) => {
-                const lower = token.lower;
-                const original = token.text;
-
-                if (/^!+$/.test(original)) {
-                    return;
-                }
-
-                if (NEGATION_WORDS.has(lower)) {
-                    sentiments.push({
-                        token: original,
-                        type: 'negation',
-                        score: 0,
-                        adjustedScore: 0,
-                        adjustments: ['否定語 / Negation word']
-                    });
-                    return;
-                }
-
-                if (token.isEmoji && emojiLexicon[original]) {
-                    const emojiDescription = emojiLexicon[original];
-                    const descWords = emojiDescription.toLowerCase().split(/\s+/);
-
-                    let totalScore = 0;
-                    let foundWords = [];
-
-                    descWords.forEach(word => {
-                        if (vaderLexicon[word]) {
-                            totalScore += vaderLexicon[word].score;
-                            foundWords.push(word + '(' + vaderLexicon[word].score.toFixed(2) + ')');
-                        }
-                    });
-
-                    if (foundWords.length > 0) {
-                        let score = totalScore;
-                        let type = score > 0 ? 'positive' : (score < 0 ? 'negative' : 'neutral');
-                        let adjustments = [
-                            '絵文字 / Emoji: "' + emojiDescription + '"',
-                            'マッチした単語 / Matched: ' + foundWords.join(', ')
-                        ];
-
-                        let isNegated = false;
-                        for (let j = Math.max(0, i - 3); j < i; j++) {
-                            if (NEGATION_WORDS.has(tokens[j].lower)) {
-                                isNegated = true;
-                                break;
-                            }
-                        }
-
-                        if (isNegated) {
-                            score = score * N_SCALAR;
-                            type = score > 0 ? 'negated_negative' : 'negated_positive';
-                            adjustments.push('否定効果 / Negation effect');
-                        }
-
-                        sentiments.push({
-                            token: original,
-                            type,
-                            score: totalScore,
-                            adjustedScore: score,
-                            adjustments,
-                            stdDev: 0
-                        });
-                        return;
-                    } else {
-                        sentiments.push({
-                            token: original,
-                            type: 'neutral',
-                            score: 0,
-                            adjustedScore: 0,
-                            adjustments: ['絵文字 / Emoji: "' + emojiDescription + '" (スコアなし / No score)']
-                        });
-                        return;
-                    }
-                }
-
-                let lexiconEntry = vaderLexicon[lower] || vaderLexicon[original];
-                if (!lexiconEntry) {
-                    sentiments.push({
-                        token: original,
-                        type: 'neutral',
-                        score: 0,
-                        adjustedScore: 0,
-                        adjustments: []
-                    });
-                    return;
-                }
-
-                let score = lexiconEntry.score;
-                let adjustments = [];
-
-                for (let startI = 0; startI < 3; startI++) {
-                    if (i > startI && !vaderLexicon[tokens[i - (startI + 1)].lower]) {
-                        const prevToken = tokens[i - (startI + 1)];
-                        const prevLower = prevToken.lower;
-
-                        if (BOOSTER_DICT[prevLower]) {
-                            let scalar = BOOSTER_DICT[prevLower];
-                            if (score < 0) {
-                                scalar *= -1;
-                            }
-
-                            if (startI === 1) scalar *= 0.95;
-                            if (startI === 2) scalar *= 0.90;
-
-                            score += scalar;
-                            adjustments.push('強調語 / Booster: ' + prevLower + ' (距離' + (startI + 1) + ')');
-                        }
-                    }
-                }
-
-                if (original === original.toUpperCase() && /[A-Z]/.test(original) && original.length > 1 && isCapDiff) {
-                    if (score > 0) {
-                        score += C_INCR;
-                    } else {
-                        score -= C_INCR;
-                    }
-                    adjustments.push('全て大文字 / ALL CAPS (+' + C_INCR.toFixed(3) + ')');
-                }
-
-                let exclamationCount = 0;
-                if (i + 1 < tokens.length) {
-                    const nextToken = tokens[i + 1];
-                    if (/^!+$/.test(nextToken.text)) {
-                        exclamationCount = Math.min(nextToken.text.length, 4);
-                    }
-                }
-
-                if (exclamationCount > 0) {
-                    const exclamationBoost = 0.292 * exclamationCount;
-                    if (score > 0) {
-                        score += exclamationBoost;
-                    } else {
-                        score -= exclamationBoost;
-                    }
-                    adjustments.push('感嘆符 / Exclamation x' + exclamationCount + ' (+' + exclamationBoost.toFixed(3) + ')');
-                }
-
-                if (butIndex !== -1 && score !== 0) {
-                    if (i < butIndex) {
-                        score = score * 0.5;
-                        adjustments.push('"but"より前の減衰 / Before "but" (×0.5)');
-                    } else if (i > butIndex) {
-                        score = score * 1.5;
-                        adjustments.push('"but"より後の強調 / After "but" (×1.5)');
-                    }
-                }
-
-                let type = score > 0 ? 'positive' : (score < 0 ? 'negative' : 'neutral');
-
-                let isNegated = false;
-                for (let j = Math.max(0, i - 3); j < i; j++) {
-                    if (NEGATION_WORDS.has(tokens[j].lower)) {
-                        if (j === i - 3 && i >= 1) {
-                            if (!['or', 'nor'].includes(tokens[i - 1].lower)) {
-                                continue;
-                            }
-                        }
-                        isNegated = true;
-                        break;
-                    }
-                }
-
-                if (isNegated && score !== 0) {
-                    score = score * N_SCALAR;
-                    type = score > 0 ? 'negated_negative' : 'negated_positive';
-                    adjustments.push('否定効果 / Negation effect (×' + N_SCALAR + ')');
-                }
-
-                sentiments.push({
-                    token: original,
-                    type,
-                    score: lexiconEntry.score,
-                    adjustedScore: score,
-                    adjustments,
-                    stdDev: lexiconEntry.stdDev
-                });
-            });
-
-            let sum = 0;
-            let sumSquares = 0;
-            let posSum = 0, negSum = 0, neuCount = 0;
-
-            sentiments.forEach(s => {
-                sum += s.adjustedScore;
-                sumSquares += s.adjustedScore * s.adjustedScore;
-
-                if (s.adjustedScore > 0) {
-                    posSum += s.adjustedScore;
-                } else if (s.adjustedScore < 0) {
-                    negSum += s.adjustedScore;
-                } else {
-                    neuCount++;
-                }
-            });
-
-            const alpha = 15;
-            let compound = sum / Math.sqrt(sum * sum + alpha);
-            compound = Math.max(-1, Math.min(1, compound));
-
-            const total = posSum + Math.abs(negSum) + neuCount;
-            const pos = total > 0 ? Math.abs(posSum / total) : 0;
-            const neg = total > 0 ? Math.abs(negSum / total) : 0;
-            const neu = total > 0 ? Math.abs(neuCount / total) : 0;
-
-            return { compound, pos, neg, neu, sentiments };
-        }
-
-        // ============================================================================
-        // Display Functions (XSS-Safe)
-        // ============================================================================
-
-        function getWordColor(type) {
-            const colors = {
-                positive: 'bg-green-500 text-white',
-                negative: 'bg-red-500 text-white',
-                negated_positive: 'bg-orange-400 text-white',
-                negated_negative: 'bg-blue-400 text-white',
-                negation: 'bg-yellow-400 text-black',
-                exclamation: 'bg-purple-400 text-white',
-                neutral: 'bg-gray-300 text-gray-700'
-            };
-            return colors[type] || colors.neutral;
-        }
-
-        function getSentimentLabel(score) {
-            if (score >= 0.5) return { label: '強いポジティブ / Strong Positive', color: 'bg-green-700', icon: '😊' };
-            if (score >= 0.05) return { label: '弱いポジティブ / Weak Positive', color: 'bg-green-500', icon: '🙂' };
-            if (score > -0.05) return { label: '中立 / Neutral', color: 'bg-gray-500', icon: '😐' };
-            if (score > -0.5) return { label: '弱いネガティブ / Weak Negative', color: 'bg-red-500', icon: '🙁' };
-            return { label: '強いネガティブ / Strong Negative', color: 'bg-red-700', icon: '😞' };
-        }
-
-        function displayResults(result) {
-            const resultContainer = document.getElementById('result-container');
-            resultContainer.classList.remove('hidden');
-
-            if (Array.isArray(result)) {
-                document.getElementById('sentence-mode-results').classList.remove('hidden');
-                document.getElementById('single-mode-results').classList.add('hidden');
-                displaySentenceResults(result);
-            } else {
-                document.getElementById('sentence-mode-results').classList.add('hidden');
-                document.getElementById('single-mode-results').classList.remove('hidden');
-                displaySingleResult(result);
-            }
-        }
-
-        function displaySingleResult(result) {
-            const label = getSentimentLabel(result.compound);
-
-            const compoundDisplay = document.getElementById('compound-score-display');
-            compoundDisplay.textContent = result.compound.toFixed(4);
-            compoundDisplay.className = 'text-5xl font-bold mb-2 ' +
-                (result.compound >= 0.05 ? 'text-green-600' :
-                result.compound <= -0.05 ? 'text-red-600' : 'text-gray-600');
-
-            const sentimentLabel = document.getElementById('sentiment-label');
-            sentimentLabel.textContent = label.label;
-            sentimentLabel.className = 'inline-block px-4 py-2 rounded text-white text-base font-semibold ' + label.color;
-
-            const bar = document.getElementById('sentiment-bar');
-            bar.style.width = ((result.compound + 1) / 2) * 100 + '%';
-
-            document.getElementById('pos-score').textContent = (result.pos * 100).toFixed(1) + '%';
-            document.getElementById('neu-score').textContent = (result.neu * 100).toFixed(1) + '%';
-            document.getElementById('neg-score').textContent = (result.neg * 100).toFixed(1) + '%';
-
-            // SECURITY: Safe rendering of highlighted text using DOM construction
-            const highlightedText = document.getElementById('highlighted-text');
-            setChildren(highlightedText, result.sentiments.map(s => {
-                return el('span', {
-                    class: 'inline-block px-2 py-1 m-1 rounded ' + getWordColor(s.type),
-                    title: 'Score: ' + s.adjustedScore.toFixed(2),
-                    text: s.token // Safe: textContent
-                });
-            }));
-
-            // SECURITY: Safe rendering of token table
-            const tokenTable = document.getElementById('token-table');
-            const significantTokens = result.sentiments.filter(s => s.score !== 0 || s.type === 'negation' || s.type === 'exclamation');
-
-            setChildren(tokenTable, significantTokens.map(s => {
-                const stdDevCell = el('td', { class: 'border p-2' });
-                if (s.stdDev) {
-                    stdDevCell.textContent = s.stdDev.toFixed(2);
-                    const barBg = el('div', { class: 'w-full bg-gray-200 rounded-full h-2 mt-1' });
-                    const bar = el('div', {
-                        class: 'bg-blue-600 h-2 rounded-full',
-                        style: 'width: ' + Math.min(100, (s.stdDev / 3) * 100) + '%'
-                    });
-                    barBg.appendChild(bar);
-                    stdDevCell.appendChild(barBg);
-                } else {
-                    stdDevCell.textContent = '-';
-                }
-
-                return el('tr', { class: 'hover:bg-gray-50' }, [
-                    el('td', { class: 'border p-2 font-semibold', text: s.token }),
-                    el('td', { class: 'border p-2 text-center', text: s.score.toFixed(2) }),
-                    el('td', { class: 'border p-2 text-center font-semibold', text: s.adjustedScore.toFixed(2) }),
-                    el('td', { class: 'border p-2', text: (s.adjustments && s.adjustments.length > 0) ? s.adjustments.join(', ') : '-' }),
-                    stdDevCell
-                ]);
-            }));
-        }
-
-        function displaySentenceResults(results) {
-            const container = document.getElementById('sentence-mode-results');
-
-            const avgCompound = results.reduce((sum, r) => sum + r.compound, 0) / results.length;
-            const posCount = results.filter(r => r.compound >= 0.05).length;
-            const negCount = results.filter(r => r.compound <= -0.05).length;
-
-            // SECURITY: Build all elements safely
-            const elements = [];
-
-            elements.push(el('h2', { class: 'text-xl font-bold mb-4', text: '文ごとの分析結果 / Sentence-level Analysis Results' }));
-
-            // Summary section
-            const summaryDiv = el('div', { class: 'mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-purple-200 rounded-lg p-6' }, [
-                el('h3', { class: 'text-lg font-bold mb-4 text-purple-900', text: '📈 全体の集計 / Overall Summary' }),
-                el('div', { class: 'grid grid-cols-2 md:grid-cols-4 gap-4' }, [
-                    el('div', { class: 'bg-white rounded-lg p-4 text-center border-2 border-blue-300' }, [
-                        el('div', { class: 'text-sm text-gray-600 mb-1', text: '平均 / Average' }),
-                        el('div', {
-                            class: 'text-2xl font-bold ' + (avgCompound >= 0 ? 'text-green-600' : 'text-red-600'),
-                            text: avgCompound.toFixed(4)
-                        })
-                    ]),
-                    el('div', { class: 'bg-white rounded-lg p-4 text-center border-2 border-gray-300' }, [
-                        el('div', { class: 'text-sm text-gray-600 mb-1', text: '総文数 / Total' }),
-                        el('div', { class: 'text-2xl font-bold text-gray-800', text: results.length + '文' })
-                    ]),
-                    el('div', { class: 'bg-white rounded-lg p-4 text-center border-2 border-green-300' }, [
-                        el('div', { class: 'text-sm text-gray-600 mb-1', text: 'ポジティブ / Positive' }),
-                        el('div', { class: 'text-xl font-bold text-green-600', text: posCount + '文' }),
-                        el('div', { class: 'text-xs text-gray-500', text: '(' + ((posCount/results.length)*100).toFixed(1) + '%)' })
-                    ]),
-                    el('div', { class: 'bg-white rounded-lg p-4 text-center border-2 border-red-300' }, [
-                        el('div', { class: 'text-sm text-gray-600 mb-1', text: 'ネガティブ / Negative' }),
-                        el('div', { class: 'text-xl font-bold text-red-600', text: negCount + '文' }),
-                        el('div', { class: 'text-xs text-gray-500', text: '(' + ((negCount/results.length)*100).toFixed(1) + '%)' })
-                    ])
-                ])
-            ]);
-
-            elements.push(summaryDiv);
-
-            // Individual sentence results
-            results.forEach((result, i) => {
-                const label = getSentimentLabel(result.compound);
-                const borderColor = result.compound >= 0.05 ? 'border-green-300' :
-                                   result.compound <= -0.05 ? 'border-red-300' : 'border-gray-300';
-
-                const sentenceDiv = el('div', { class: 'mb-6 bg-white rounded-lg border-2 ' + borderColor + ' p-5' }, [
-                    el('div', { class: 'flex items-start justify-between mb-3' }, [
-                        el('div', { class: 'flex-1' }, [
-                            el('div', { class: 'text-lg font-bold text-gray-800 mb-2', text: label.icon + ' 文' + (i + 1) + ' / Sentence ' + (i + 1) }),
-                            el('div', { class: 'text-base text-gray-700 italic mb-3 bg-gray-50 p-3 rounded', text: '"' + result.originalText + '"' })
-                        ]),
-                        el('span', {
-                            class: 'ml-4 px-3 py-1 rounded text-white text-sm font-semibold whitespace-nowrap ' + label.color,
-                            text: label.label + ' ' + result.compound.toFixed(4)
-                        })
-                    ]),
-                    el('div', { class: 'grid grid-cols-3 gap-3 mb-4' }, [
-                        el('div', { class: 'border rounded p-2 text-center bg-green-50' }, [
-                            el('div', { class: 'text-xs text-gray-600 mb-1', text: 'ポジティブ / Positive' }),
-                            el('div', { class: 'text-lg font-bold text-green-600', text: (result.pos * 100).toFixed(1) + '%' })
-                        ]),
-                        el('div', { class: 'border rounded p-2 text-center bg-gray-50' }, [
-                            el('div', { class: 'text-xs text-gray-600 mb-1', text: '中立 / Neutral' }),
-                            el('div', { class: 'text-lg font-bold text-gray-600', text: (result.neu * 100).toFixed(1) + '%' })
-                        ]),
-                        el('div', { class: 'border rounded p-2 text-center bg-red-50' }, [
-                            el('div', { class: 'text-xs text-gray-600 mb-1', text: 'ネガティブ / Negative' }),
-                            el('div', { class: 'text-lg font-bold text-red-600', text: (result.neg * 100).toFixed(1) + '%' })
-                        ])
-                    ]),
-                    el('div', { class: 'mb-4' }, [
-                        el('h4', { class: 'font-semibold text-sm mb-2', text: '感情表現のハイライト / Sentiment Highlights' }),
-                        el('div', { class: 'bg-gray-50 p-3 rounded leading-relaxed' },
-                            result.sentiments.map(s => el('span', {
-                                class: 'inline-block px-2 py-1 m-1 rounded text-sm ' + getWordColor(s.type),
-                                title: 'Score: ' + s.adjustedScore.toFixed(2),
-                                text: s.token
-                            }))
-                        )
-                    ])
-                ]);
-
-                const significantTokens = result.sentiments.filter(s => s.score !== 0 || s.type === 'negation' || s.type === 'exclamation');
-
-                if (significantTokens.length > 0) {
-                    const tableDiv = el('div', {}, [
-                        el('h4', { class: 'font-semibold text-sm mb-2', text: '詳細単語分析 / Detailed Token Analysis' }),
-                        el('div', { class: 'overflow-x-auto' }, [
-                            el('table', { class: 'w-full border-collapse text-xs' }, [
-                                el('thead', {}, [
-                                    el('tr', { class: 'bg-gray-100' }, [
-                                        el('th', { class: 'border p-2 text-left', text: '単語' }),
-                                        el('th', { class: 'border p-2', text: '元スコア' }),
-                                        el('th', { class: 'border p-2', text: '調整後' }),
-                                        el('th', { class: 'border p-2 text-left', text: '調整内容' }),
-                                        el('th', { class: 'border p-2', text: '標準偏差' })
-                                    ])
-                                ]),
-                                el('tbody', {}, significantTokens.map(s => {
-                                    return el('tr', { class: 'hover:bg-gray-50' }, [
-                                        el('td', { class: 'border p-2 font-semibold', text: s.token }),
-                                        el('td', { class: 'border p-2 text-center', text: s.score.toFixed(2) }),
-                                        el('td', { class: 'border p-2 text-center font-semibold', text: s.adjustedScore.toFixed(2) }),
-                                        el('td', { class: 'border p-2 text-xs', text: s.adjustments && s.adjustments.length > 0 ? s.adjustments.join(', ') : '-' }),
-                                        el('td', { class: 'border p-2', text: s.stdDev ? s.stdDev.toFixed(2) : '-' })
-                                    ]);
-                                }))
-                            ])
-                        ])
-                    ]);
-                    sentenceDiv.appendChild(tableDiv);
-                }
-
-                elements.push(sentenceDiv);
-            });
-
-            setChildren(container, elements);
-        }
-
-        function displayStatistics() {
-            document.getElementById('stats-section').classList.remove('hidden');
-            document.getElementById('tabs-section').classList.remove('hidden');
-
-            document.getElementById('stat-total').textContent = lexiconStats.total.toLocaleString();
-            document.getElementById('stat-positive').textContent = lexiconStats.positive + ' (' + ((lexiconStats.positive/lexiconStats.total)*100).toFixed(1) + '%)';
-            document.getElementById('stat-negative').textContent = lexiconStats.negative + ' (' + ((lexiconStats.negative/lexiconStats.total)*100).toFixed(1) + '%)';
-            document.getElementById('stat-neutral').textContent = lexiconStats.neutral + ' (' + ((lexiconStats.neutral/lexiconStats.total)*100).toFixed(1) + '%)';
-
-            // Distribution chart
-            const bins = {};
-            for (let i = -4; i <= 4; i += 0.5) {
-                bins[i.toFixed(1)] = 0;
-            }
-
-            Object.values(vaderLexicon).forEach(data => {
-                const binKey = (Math.round(data.score * 2) / 2).toFixed(1);
-                if (bins[binKey] !== undefined) {
-                    bins[binKey]++;
-                }
-            });
-
-            const maxCount = Math.max(...Object.values(bins));
-            const entries = Object.entries(bins).sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
-
-            // SECURITY: Safe chart rendering
-            const chartContainer = document.getElementById('distribution-chart');
-            setChildren(chartContainer, entries.map(([score, count]) => {
-                const height = (count / maxCount) * 100;
-                const numScore = parseFloat(score);
-                const color = numScore > 0 ? 'bg-green-500' : numScore < 0 ? 'bg-red-500' : 'bg-gray-400';
-
-                return el('div', { class: 'flex-1 flex flex-col items-center', style: 'height: 100%' }, [
-                    el('div', { class: 'w-full flex items-end justify-center', style: 'height: 100%' }, [
-                        el('div', {
-                            class: 'chart-bar w-full ' + color + ' rounded-t transition-all hover:opacity-80',
-                            style: 'height: ' + height + '%',
-                            title: score + ': ' + count + '単語'
-                        })
-                    ])
-                ]);
-            }));
-
-            // Top positive/negative words
-            const getTopTokens = (type, count) => {
-                const tokens = Object.entries(vaderLexicon).map(([token, data]) => ({
-                    token,
-                    score: data.score,
-                    stdDev: data.stdDev
-                }));
-
-                if (type === 'positive') {
-                    return tokens.filter(t => t.score > 0).sort((a, b) => b.score - a.score).slice(0, count);
-                } else {
-                    return tokens.filter(t => t.score < 0).sort((a, b) => a.score - b.score).slice(0, count);
-                }
-            };
-
-            const topPositive = getTopTokens('positive', 20);
-            const topNegative = getTopTokens('negative', 20);
-
-            // SECURITY: Safe rendering
-            const topPositiveContainer = document.getElementById('top-positive');
-            setChildren(topPositiveContainer, topPositive.map(t => {
-                return el('div', { class: 'border rounded p-2 bg-green-50' }, [
-                    el('div', { class: 'font-semibold text-sm break-all', text: t.token }),
-                    el('div', { class: 'text-green-700 font-bold', text: t.score.toFixed(2) })
-                ]);
-            }));
-
-            const topNegativeContainer = document.getElementById('top-negative');
-            setChildren(topNegativeContainer, topNegative.map(t => {
-                return el('div', { class: 'border rounded p-2 bg-red-50' }, [
-                    el('div', { class: 'font-semibold text-sm break-all', text: t.token }),
-                    el('div', { class: 'text-red-700 font-bold', text: t.score.toFixed(2) })
-                ]);
-            }));
-
-            // High standard deviation
-            const highStdDev = Object.entries(vaderLexicon)
-                .map(([token, data]) => ({ token, score: data.score, stdDev: data.stdDev }))
-                .sort((a, b) => b.stdDev - a.stdDev)
-                .slice(0, 20);
-
-            const highStdDevContainer = document.getElementById('high-stddev');
-            setChildren(highStdDevContainer, highStdDev.map(t => {
-                return el('div', { class: 'border rounded p-2 bg-yellow-50' }, [
-                    el('div', { class: 'font-semibold text-sm break-all', text: t.token }),
-                    el('div', { class: 'text-xs' }, [
-                        el('span', { class: 'text-gray-700', text: 'Score: ' + t.score.toFixed(2) }),
-                        document.createElement('br'),
-                        el('span', { class: 'text-yellow-700 font-bold', text: 'σ: ' + t.stdDev.toFixed(2) })
-                    ])
-                ]);
-            }));
-        }
-
-        // ============================================================================
-        // Event Listeners
-        // ============================================================================
-
-        document.getElementById('lexicon-file').addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            // SECURITY: File validation
-            if (!file.name.endsWith('.txt')) {
-                showNotification('テキストファイル(.txt)をアップロードしてください / Please upload a text file (.txt)', 'error');
-                return;
-            }
-
-            if (file.size > MAX_FILE_SIZE) {
-                showNotification('ファイルが大きすぎます（上限10MB）/ File too large (max 10MB)', 'error');
-                return;
-            }
-
-            try {
-                const text = await file.text();
-                const result = parseLexicon(text);
-
-                vaderLexicon = result.lexicon;
-                lexiconStats = result.stats;
-
-                document.getElementById('lexicon-loaded').textContent = '✓ ' + result.stats.total.toLocaleString() + ' 単語を読み込みました / ' + result.stats.total.toLocaleString() + ' words loaded';
-                document.getElementById('lexicon-loaded').classList.remove('hidden');
-
-                displayStatistics();
-                showNotification(result.stats.total.toLocaleString() + ' 単語を読み込みました / ' + result.stats.total.toLocaleString() + ' words loaded', 'success');
-            } catch (error) {
-                showNotification('ファイルの読み込みに失敗しました / Failed to load file', 'error');
-                console.error(error);
-            }
-        });
-
-        document.getElementById('emoji-file').addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            // SECURITY: File validation
-            if (!file.name.endsWith('.txt')) {
-                showNotification('テキストファイル(.txt)をアップロードしてください / Please upload a text file (.txt)', 'error');
-                return;
-            }
-
-            if (file.size > MAX_FILE_SIZE) {
-                showNotification('ファイルが大きすぎます（上限10MB）/ File too large (max 10MB)', 'error');
-                return;
-            }
-
-            try {
-                const text = await file.text();
-                const result = parseEmojiLexicon(text);
-
-                emojiLexicon = result.lexicon;
-
-                document.getElementById('emoji-loaded').textContent = '✓ ' + result.count.toLocaleString() + ' 個の絵文字マッピングを読み込みました / ' + result.count.toLocaleString() + ' emoji mappings loaded';
-                document.getElementById('emoji-loaded').classList.remove('hidden');
-
-                showNotification(result.count.toLocaleString() + ' 個の絵文字マッピングを読み込みました / ' + result.count.toLocaleString() + ' emoji mappings loaded', 'success');
-            } catch (error) {
-                showNotification('絵文字ファイルの読み込みに失敗しました / Failed to load emoji file', 'error');
-                console.error(error);
-            }
-        });
-
-        document.getElementById('analyze-btn').addEventListener('click', function() {
-            const text = document.getElementById('text-input').value.trim();
-            if (!text) {
-                showNotification('分析するテキストを入力してください / Please enter text to analyze', 'error');
-                return;
-            }
-            if (Object.keys(vaderLexicon).length === 0) {
-                showNotification('まずレキシコンファイルを読み込んでください / Please load the lexicon file first', 'error');
-                return;
-            }
-
-            const splitBySentence = document.getElementById('split-sentences-checkbox').checked;
-
-            if (splitBySentence) {
-                const sentences = splitIntoSentences(text);
-                if (sentences.length === 0) {
-                    showNotification('有効な文が見つかりませんでした / No valid sentences found', 'error');
-                    return;
-                }
-
-                const results = sentences.map(sentence => {
-                    const result = analyzeSentiment(sentence);
-                    result.originalText = sentence;
-                    return result;
-                });
-
-                displayResults(results);
-            } else {
-                const result = analyzeSentiment(text);
-                displayResults(result);
-            }
-        });
-
-        document.querySelectorAll('.sample-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.getElementById('text-input').value = btn.textContent;
-            });
-        });
-
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const tab = btn.dataset.tab;
-
-                document.querySelectorAll('.tab-btn').forEach(b => {
-                    b.classList.remove('border-blue-600', 'text-blue-600');
-                    b.classList.add('text-gray-500');
-                });
-                btn.classList.add('border-blue-600', 'text-blue-600');
-                btn.classList.remove('text-gray-500');
-
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.add('hidden');
-                });
-                document.getElementById(tab + '-tab').classList.remove('hidden');
-            });
-        });
-
-        // SECURITY: Debounced search input for performance
-        const performSearch = debounce(function(e) {
-            const query = e.target.value.toLowerCase().trim();
-            const resultsDiv = document.getElementById('search-results');
-
-            if (query.length < 1) {
-                setChildren(resultsDiv, [
-                    el('div', { class: 'p-8 text-center text-gray-500', text: 'キーワードを入力してください / Enter keywords to search' })
-                ]);
-                return;
-            }
-
-            const matches = Object.entries(vaderLexicon)
-                .filter(([token]) => token.toLowerCase().includes(query))
-                .slice(0, 50);
-
-            if (matches.length === 0) {
-                setChildren(resultsDiv, [
-                    el('div', { class: 'p-8 text-center text-gray-500', text: '検索結果がありません / No results found' })
-                ]);
-                return;
-            }
-
-            // SECURITY: Safe rendering of search results
-            setChildren(resultsDiv, matches.map(([token, data]) => {
-                const scoreColor = data.score > 0 ? 'text-green-600' : data.score < 0 ? 'text-red-600' : 'text-gray-600';
-
-                return el('div', { class: 'border-b p-3 flex justify-between items-center hover:bg-gray-50' }, [
-                    el('span', { class: 'font-semibold', text: token }),
-                    el('div', { class: 'text-sm' }, [
-                        el('span', { class: 'font-bold ' + scoreColor, text: data.score.toFixed(2) }),
-                        el('span', { class: 'text-gray-500 ml-2', text: 'σ=' + data.stdDev.toFixed(2) })
-                    ])
-                ]);
-            }));
-        }, 300);
-
-        document.getElementById('search-input').addEventListener('input', performSearch);
-    </script>
+    <script src="vader.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
