@@ -38,7 +38,7 @@ When using this tool in academic research:
 - **Analysis unit** → Critical information for reproducibility
 
 > [!IMPORTANT]
-> **Version 2.0.0 produces different scores than earlier versions.**
+> **Version 2.0.0 produces different scores than the earlier code.**
 >
 > Before version 2.0.0, this documentation described the tool as "Version 1.0".
 > That earlier implementation deviated from the reference Python implementation

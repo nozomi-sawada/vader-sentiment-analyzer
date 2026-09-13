@@ -70,7 +70,9 @@ Each of these could change the score of an affected text:
   Content Security Policy is restricted to `script-src 'self'; style-src 'self'`
   with no external resources.
 
-## [1.0] — 2025
+## Earlier code (2025, no release)
 
-Initial public release. Superseded by 2.0.0; see the note above regarding score
-differences.
+The tool was publicly available from 2025, but no release or tag was created, so
+no version identifier resolves to that code. The documentation referred to it as
+"Version 1.0". Its scores differ from 2.0.0 — see above. 2.0.0 is the first
+release of this repository.
