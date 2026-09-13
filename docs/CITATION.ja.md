@@ -25,7 +25,8 @@
 本ツールを学術研究で使用する場合：
 
 - **必須**: VADER元論文（Hutto & Gilbert, 2014）を引用  
-- **推奨**: 本ツール（Sawada, 2025）を引用  
+- **必須**: 使用した本ツールのバージョンを明記  
+- **推奨**: 本ツール（Sawada, 2026）を引用  
 - **重要**: 本ツールはVADERアルゴリズムの実装であることを明記  
 - **推奨**: 分析単位（文単位/文書単位）を明記
 
@@ -33,7 +34,22 @@
 
 - **VADER論文** → アルゴリズムの開発者への敬意
 - **本ツール** → 使用した具体的な実装の透明性
+- **バージョン** → バージョン2.0.0でスコアが変わりました（下記参照）
 - **分析単位** → 再現性のための重要な情報
+
+> [!IMPORTANT]
+> **バージョン2.0.0は、それ以前のバージョンと異なるスコアを出力します。**
+>
+> バージョン2.0.0より前、本ドキュメントは本ツールを「Version 1.0」として案内していました。
+> その旧実装は、いくつかのルール（エモーティコンのトークン化、句読点による強調、
+> ポジティブ/中立/ネガティブ比率の計算）で本家Python実装と異なる挙動をしており、
+> 同じ入力に対して異なる数値を返すことがありました。
+>
+> バージョン2.0.0では、エンジンを vaderSentiment 3.3.2 の逐行移植に置き換え、
+> 出力が本家と一致することを自動テストで検証しています。
+> **旧バージョンで分析を行い、具体的なスコアを報告している場合は、
+> バージョン2.0.0で再分析してください。** 修正されたルールの一覧は
+> [CHANGELOG.md](../CHANGELOG.md) を参照してください。
 
 ---
 
@@ -63,10 +79,11 @@ Hutto, C.J., & Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for 
 ### BibTeX形式
 
 ```bibtex
-@software{sawada2025vader,
+@software{sawada2026vader,
   author = {Sawada, Nozomi},
   title = {VADER-based Sentiment Analysis Tool},
-  year = {2025},
+  year = {2026},
+  version = {2.0.0},
   url = {https://github.com/nozomi-sawada/vader-sentiment-analyzer},
   note = {Web-based implementation of VADER sentiment analysis with sentence-level analysis support}
 }
@@ -74,7 +91,7 @@ Hutto, C.J., & Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for 
 
 ### テキスト形式
 
-Sawada, N. (2025). *VADER-based Sentiment Analysis Tool* [Web application]. GitHub. https://github.com/nozomi-sawada/vader-sentiment-analyzer
+Sawada, N. (2026). *VADER-based Sentiment Analysis Tool* [Web application]. GitHub. https://github.com/nozomi-sawada/vader-sentiment-analyzer
 
 ---
 
@@ -84,7 +101,7 @@ Sawada, N. (2025). *VADER-based Sentiment Analysis Tool* [Web application]. GitH
 
 ```
 感情分析には、VADER (Valence Aware Dictionary and sEntiment Reasoner; 
-Hutto & Gilbert, 2014) アルゴリズムを実装したWebベースツール（Sawada, 2025）
+Hutto & Gilbert, 2014) アルゴリズムを実装したWebベースツール（Sawada, 2026）
 を使用した。VADERは、約7,500語の感情語彙と5つの文法ルール（否定、強調語、
 大文字、句読点による強調、"but"による文脈調整）を組み合わせて感情スコアを算出する。
 VADER論文の推奨に従い、テキストを文単位に分割して各文を個別に分析した。
@@ -95,13 +112,13 @@ VADER論文の推奨に従い、テキストを文単位に分割して各文を
 
 ```
 テキストの感情分析にはVADER（Hutto & Gilbert, 2014）の実装ツール
-（Sawada, 2025）を使用した。各テキストは全体を1つの単位として分析した。
+（Sawada, 2026）を使用した。各テキストは全体を1つの単位として分析した。
 ```
 
 ### パターン3：絵文字処理を使用
 
 ```
-感情分析には、Sawada (2025) が開発したVADER準拠感情分析ツールを使用した。
+感情分析には、Sawada (2026) が開発したVADER準拠感情分析ツールを使用した。
 このツールは、元のVADERアルゴリズム（Hutto & Gilbert, 2014）の動作を
 再現するブラウザベースの実装である。絵文字を含むテキストの処理には、
 emoji_utf8_lexicon.txt（約3,000種類の絵文字マッピング）を使用し、
@@ -118,7 +135,7 @@ emoji_utf8_lexicon.txt（約3,000種類の絵文字マッピング）を使用�
 3.2 感情分析
 
 収集したテキストデータの感情分析には、VADER (Hutto & Gilbert, 2014) を
-実装したWebベースツール（Sawada, 2025）を使用した。VADERは辞書ベースの
+実装したWebベースツール（Sawada, 2026）を使用した。VADERは辞書ベースの
 感情分析手法であり、約7,500語の感情語彙（vader_lexicon.txt, v.2014）と
 文法ルール（否定、強調、大文字表記、句読点による強調、対照接続詞の処理）を組み合わせて
 感情スコアを算出する。
@@ -177,7 +194,7 @@ International Conference on Weblogs and Social Media (ICWSM-14). Ann Arbor, MI.
 
 **本ツール**:
 ```
-Sawada, N. (2025). VADER-based sentiment analysis tool (Version 1.0) [Computer software]. 
+Sawada, N. (2026). VADER-based sentiment analysis tool (Version 2.0.0) [Computer software]. 
 GitHub. https://github.com/nozomi-sawada/vader-sentiment-analyzer
 ```
 
@@ -192,7 +209,7 @@ GitHub. https://github.com/nozomi-sawada/vader-sentiment-analyzer
 
 **本ツール**:
 ```
-[2] N. Sawada. (2025). VADER-based Sentiment Analysis Tool [Online]. 
+[2] N. Sawada. (2026). VADER-based Sentiment Analysis Tool [Online]. 
     Available: https://github.com/nozomi-sawada/vader-sentiment-analyzer
 ```
 
@@ -208,7 +225,7 @@ June 2014.
 
 **本ツール**:
 ```
-Sawada, Nozomi. 2025. "VADER-based Sentiment Analysis Tool." Version 1.0. GitHub. 
+Sawada, Nozomi. 2026. "VADER-based Sentiment Analysis Tool." Version 2.0.0. GitHub. 
 https://github.com/nozomi-sawada/vader-sentiment-analyzer.
 ```
 
@@ -223,7 +240,7 @@ Conference on Weblogs and Social Media (ICWSM-14), 2014, Ann Arbor, MI.
 
 **本ツール**:
 ```
-Sawada, Nozomi. VADER-based Sentiment Analysis Tool. Version 1.0, GitHub, 2025, 
+Sawada, Nozomi. VADER-based Sentiment Analysis Tool. Version 2.0.0, GitHub, 2026, 
 github.com/nozomi-sawada/vader-sentiment-analyzer.
 ```
 
@@ -238,7 +255,7 @@ International Conference on Weblogs and Social Media (ICWSM-14). Ann Arbor, MI.
 
 **本ツール**:
 ```
-Sawada, N. (2025) VADER-based Sentiment Analysis Tool. Version 1.0. Available at: 
+Sawada, N. (2026) VADER-based Sentiment Analysis Tool. Version 2.0.0. Available at: 
 https://github.com/nozomi-sawada/vader-sentiment-analyzer (Accessed: [date]).
 ```
 
@@ -264,11 +281,11 @@ A: VADER論文では**文単位分析を推奨**しています。論文にも�
 A: 以下のいずれかの形式を推奨します：
 
 **文単位分析の場合：**
-- 「VADER (Hutto & Gilbert, 2014) の実装 (Sawada, 2025) を使用し、文単位で分析した」
-- 「Sawada (2025) によるVADER実装を使用し、論文推奨の文単位分析を実施」
+- 「VADER (Hutto & Gilbert, 2014) の実装 (Sawada, 2026) を使用し、文単位で分析した」
+- 「Sawada (2026) によるVADER実装を使用し、論文推奨の文単位分析を実施」
 
 **文書単位分析の場合：**
-- 「VADER (Hutto & Gilbert, 2014; 実装: Sawada, 2025) を使用し、テキスト全体を分析」
+- 「VADER (Hutto & Gilbert, 2014; 実装: Sawada, 2026) を使用し、テキスト全体を分析」
 
 ### Q4: レキシコンファイルの出典も書くべきですか？
 
@@ -287,17 +304,17 @@ A: はい、再現性のため、以下のいずれかを推奨します：
 
 1. **バージョン番号**（リリースされている場合）
    ```
-   Sawada (2025, version 1.0)
+   Sawada (2026, version 2.0.0)
    ```
 
 2. **アクセス日時**
    ```
-   Sawada (2025, accessed January 15, 2025)
+   Sawada (2026, accessed September 13, 2026)
    ```
 
 3. **コミットハッシュ**（技術的な論文の場合）
    ```
-   Sawada (2025, commit a1b2c3d)
+   Sawada (2026, commit a1b2c3d)
    ```
 
 ### Q6: 絵文字レキシコンを使用した場合は？
@@ -365,7 +382,7 @@ A: はい、特に文単位分析を使用した場合、集計方法を明記�
 ### テンプレート1：最小限の記述
 
 ```
-感情分析にはVADER (Hutto & Gilbert, 2014) の実装 (Sawada, 2025) を使用し、
+感情分析にはVADER (Hutto & Gilbert, 2014) の実装 (Sawada, 2026) を使用し、
 [文単位/文書単位]で分析した。vader_lexicon.txt (v.2014) を使用し、
 Compound Score ≥ 0.05をポジティブ、≤ -0.05をネガティブと分類した。
 ```
@@ -374,7 +391,7 @@ Compound Score ≥ 0.05をポジティブ、≤ -0.05をネガティブと分類
 
 ```
 感情分析にはVADER (Valence Aware Dictionary and sEntiment Reasoner; 
-Hutto & Gilbert, 2014) アルゴリズムを実装したWebベースツール（Sawada, 2025）
+Hutto & Gilbert, 2014) アルゴリズムを実装したWebベースツール（Sawada, 2026）
 を使用した。VADERは約7,500語の感情語彙（vader_lexicon.txt, v.2014）と
 5つの文法ルール（否定、強調語、大文字表記、句読点による強調、"but"による文脈調整）を
 組み合わせて感情スコアを算出する。

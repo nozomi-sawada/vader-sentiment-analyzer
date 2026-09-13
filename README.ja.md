@@ -20,6 +20,13 @@
 
 ![分析結果画面](docs/images/screenshot-analysis.png)
 
+> [!IMPORTANT]
+> **バージョン2.0.0は、それ以前と異なるスコアを出力します。** 分析エンジンを本家Python実装の
+> 忠実な移植に置き換え、複数のルール（エモーティコンのトークン化、句読点による強調、
+> pos/neu/neg比率、否定の適用範囲）を修正したためです。旧バージョンで分析し具体的なスコアを
+> 報告している場合は、再分析のうえ論文にバージョン2.0.0と明記してください。詳細は
+> [CHANGELOG.md](CHANGELOG.md) を参照してください。
+
 ## 主な特徴
 
 - **ブラウザベース** - インストールもサーバーも不要
@@ -306,7 +313,7 @@ Hutto & Gilbert (2014) は以下のデータセットでVADERの性能を検証�
 
 **日本語:**
 
-> 感情分析には、Hutto & Gilbert (2014) が開発したVADER (Valence Aware Dictionary and sEntiment Reasoner) を用いた。VADERは、約7,500語の感情語彙と文法的・語用論的ルールに基づく辞書ベースの手法であり、ソーシャルメディアテキストの感情分析に特化している。分析には、Sawada (2025) が開発したブラウザベースの実装ツールを使用した。Compound Scoreが+0.05以上をポジティブ、-0.05以下をネガティブ、その間を中立と分類した。
+> 感情分析には、Hutto & Gilbert (2014) が開発したVADER (Valence Aware Dictionary and sEntiment Reasoner) を用いた。VADERは、約7,500語の感情語彙と文法的・語用論的ルールに基づく辞書ベースの手法であり、ソーシャルメディアテキストの感情分析に特化している。分析には、Sawada (2026) が開発したブラウザベースの実装ツールを使用した。Compound Scoreが+0.05以上をポジティブ、-0.05以下をネガティブ、その間を中立と分類した。
 
 #### 結果セクション
 
@@ -348,10 +355,11 @@ Hutto & Gilbert (2014) は以下のデータセットでVADERの性能を検証�
 ### 推奨（本ツール）
 
 ```bibtex
-@software{sawada2025vader,
+@software{sawada2026vader,
   author = {Sawada, Nozomi},
   title = {VADER-based Sentiment Analysis Tool},
-  year = {2025},
+  year = {2026},
+  version = {2.0.0},
   url = {https://github.com/nozomi-sawada/vader-sentiment-analyzer}
 }
 ```
@@ -363,6 +371,7 @@ Hutto & Gilbert (2014) は以下のデータセットでVADERの性能を検証�
 - **[ALGORITHM.ja.md](docs/ALGORITHM.ja.md)** - アルゴリズムの詳細実装
 - **[LEXICON.ja.md](docs/LEXICON.ja.md)** - レキシコンの構造とアノテーション方法論
 - **[CITATION.ja.md](docs/CITATION.ja.md)** - 学術利用のための詳細な引用ガイド
+- **[CHANGELOG.md](CHANGELOG.md)** - バージョン履歴（スコアが変わった修正の一覧を含む）
 
 ## ライセンス
 

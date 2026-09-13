@@ -1,6 +1,6 @@
 {
   "name": "vader-sentiment-analyzer",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Browser-based implementation of the VADER sentiment analysis algorithm (Hutto & Gilbert, 2014)",
   "license": "MIT",
   "repository": {
