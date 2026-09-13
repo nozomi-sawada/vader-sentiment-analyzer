@@ -8,6 +8,10 @@
 
 **English** | [日本語](README.ja.md)
 
+### ▶ Use it online: https://nozomi-sawada.github.io/vader-sentiment-analyzer/
+
+No installation, no sign-up, no files to download — the lexicon is built in, and your text is analyzed entirely in your own browser (nothing is sent to a server).
+
 ---
 
 ## Abstract
@@ -31,16 +35,22 @@ This tool is a browser-based implementation of the VADER (Valence Aware Dictiona
 
 ## Quick Start
 
-### Run the Tool
+### Option 1: Use the published page (recommended)
 
-1. Download this repository ("Code" → "Download ZIP", then extract) or clone it
-2. Open `index.html` in your browser — the bundled VADER lexicon and emoji lexicon load automatically
-3. Enter text and click "Analyze"
+1. Open **https://nozomi-sawada.github.io/vader-sentiment-analyzer/**
+2. The bundled VADER lexicon and emoji lexicon load automatically
+3. Enter text and click "Analyze" — or click any sample sentence to see a result right away
 
 The interface opens in Japanese by default; use the **English** button in the top-right corner to switch (the choice is remembered).
 
+### Option 2: Run it locally
+
+1. Download this repository ("Code" → "Download ZIP", then extract) or clone it
+2. Open `index.html` in your browser
+3. Enter text and click "Analyze"
+
 > [!NOTE]
-> Automatic loading requires the page to be served over HTTP (e.g. GitHub Pages or a local web server). If you open `index.html` directly from your file system, load the lexicon files manually via the buttons on the page — they are in `third_party/vaderSentiment/`.
+> Automatic lexicon loading requires the page to be served over HTTP (the published page above, or a local web server). If you open `index.html` directly from your file system, load the lexicon files manually via the buttons on the page — they are in `third_party/vaderSentiment/`.
 
 ### Using a Different Lexicon
 
