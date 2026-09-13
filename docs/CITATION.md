@@ -25,7 +25,8 @@ This document explains how to cite this tool when using it in academic research.
 When using this tool in academic research:
 
 - **Required**: Cite VADER paper (Hutto & Gilbert, 2014)  
-- **Recommended**: Cite this tool (Sawada, 2025)  
+- **Required**: State the version of this tool you used  
+- **Recommended**: Cite this tool (Sawada, 2026)  
 - **Important**: Specify that this tool implements VADER algorithm  
 - **Recommended**: Specify analysis unit (sentence-level or document-level)
 
@@ -33,7 +34,23 @@ When using this tool in academic research:
 
 - **VADER paper** → Credits algorithm developers
 - **This tool** → Specifies implementation used for transparency
+- **Version** → Scores changed in version 2.0.0 (see below)
 - **Analysis unit** → Critical information for reproducibility
+
+> [!IMPORTANT]
+> **Version 2.0.0 produces different scores than earlier versions.**
+>
+> Before version 2.0.0, this documentation described the tool as "Version 1.0".
+> That earlier implementation deviated from the reference Python implementation
+> in several rules (emoticon tokenization, punctuation emphasis, and the
+> positive/neutral/negative proportions), so it could return different numbers
+> for the same input.
+>
+> Version 2.0.0 replaces the engine with a line-by-line port of
+> vaderSentiment 3.3.2, verified against the reference by automated tests.
+> If you ran analyses with the earlier version and report exact scores,
+> re-run them with version 2.0.0. See
+> [CHANGELOG.md](../CHANGELOG.md) for the list of corrected rules.
 
 ---
 
@@ -63,10 +80,11 @@ Hutto, C.J., & Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for 
 ### BibTeX Format
 
 ```bibtex
-@software{sawada2025vader,
+@software{sawada2026vader,
   author = {Sawada, Nozomi},
   title = {VADER-based Sentiment Analysis Tool},
-  year = {2025},
+  year = {2026},
+  version = {2.0.0},
   url = {https://github.com/nozomi-sawada/vader-sentiment-analyzer},
   note = {Web-based implementation of VADER sentiment analysis with sentence-level analysis support}
 }
@@ -74,7 +92,7 @@ Hutto, C.J., & Gilbert, E.E. (2014). VADER: A Parsimonious Rule-based Model for 
 
 ### Text Format
 
-Sawada, N. (2025). *VADER-based Sentiment Analysis Tool* [Web application]. GitHub. https://github.com/nozomi-sawada/vader-sentiment-analyzer
+Sawada, N. (2026). *VADER-based Sentiment Analysis Tool* [Web application]. GitHub. https://github.com/nozomi-sawada/vader-sentiment-analyzer
 
 ---
 
@@ -84,7 +102,7 @@ Sawada, N. (2025). *VADER-based Sentiment Analysis Tool* [Web application]. GitH
 
 ```
 Sentiment analysis was conducted using a web-based implementation 
-(Sawada, 2025) of the VADER (Valence Aware Dictionary and sEntiment 
+(Sawada, 2026) of the VADER (Valence Aware Dictionary and sEntiment 
 Reasoner; Hutto & Gilbert, 2014) algorithm. VADER combines a lexicon 
 of approximately 7,500 sentiment-bearing words with five grammatical 
 rules (negation, boosters, ALL CAPS, punctuation emphasis, and contrastive 
@@ -96,7 +114,7 @@ analyzed separately. The analysis used vader_lexicon.txt (v.2014).
 ### Pattern 2: Using Document-Level Analysis
 
 ```
-Text sentiment was analyzed using an implementation (Sawada, 2025) 
+Text sentiment was analyzed using an implementation (Sawada, 2026) 
 of VADER (Hutto & Gilbert, 2014). Each text was analyzed as a single unit.
 ```
 
@@ -104,7 +122,7 @@ of VADER (Hutto & Gilbert, 2014). Each text was analyzed as a single unit.
 
 ```
 Sentiment analysis was performed using the VADER-based Sentiment Analysis 
-Tool developed by Sawada (2025), a browser-based implementation that 
+Tool developed by Sawada (2026), a browser-based implementation that 
 reproduces the behavior of the original VADER algorithm (Hutto & Gilbert, 2014). 
 For texts containing emojis, we used emoji_utf8_lexicon.txt (mapping ~3,000 
 emojis) to convert emojis to text descriptions before sentiment analysis.
@@ -120,7 +138,7 @@ emojis) to convert emojis to text descriptions before sentiment analysis.
 3.2 Sentiment Analysis
 
 Sentiment analysis of collected text data was conducted using a web-based 
-implementation (Sawada, 2025) of VADER (Hutto & Gilbert, 2014). VADER is 
+implementation (Sawada, 2026) of VADER (Hutto & Gilbert, 2014). VADER is 
 a lexicon-based sentiment analysis method that combines a sentiment lexicon 
 of approximately 7,500 words (vader_lexicon.txt, v.2014) with grammatical 
 rules (processing negation, boosters, ALL CAPS, punctuation emphasis, and 
@@ -184,7 +202,7 @@ International Conference on Weblogs and Social Media (ICWSM-14). Ann Arbor, MI.
 
 **This Tool**:
 ```
-Sawada, N. (2025). VADER-based sentiment analysis tool (Version 1.0) [Computer software]. 
+Sawada, N. (2026). VADER-based sentiment analysis tool (Version 2.0.0) [Computer software]. 
 GitHub. https://github.com/nozomi-sawada/vader-sentiment-analyzer
 ```
 
@@ -199,7 +217,7 @@ GitHub. https://github.com/nozomi-sawada/vader-sentiment-analyzer
 
 **This Tool**:
 ```
-[2] N. Sawada. (2025). VADER-based Sentiment Analysis Tool [Online]. 
+[2] N. Sawada. (2026). VADER-based Sentiment Analysis Tool [Online]. 
     Available: https://github.com/nozomi-sawada/vader-sentiment-analyzer
 ```
 
@@ -215,7 +233,7 @@ June 2014.
 
 **This Tool**:
 ```
-Sawada, Nozomi. 2025. "VADER-based Sentiment Analysis Tool." Version 1.0. GitHub. 
+Sawada, Nozomi. 2026. "VADER-based Sentiment Analysis Tool." Version 2.0.0. GitHub. 
 https://github.com/nozomi-sawada/vader-sentiment-analyzer.
 ```
 
@@ -230,7 +248,7 @@ Conference on Weblogs and Social Media (ICWSM-14), 2014, Ann Arbor, MI.
 
 **This Tool**:
 ```
-Sawada, Nozomi. VADER-based Sentiment Analysis Tool. Version 1.0, GitHub, 2025, 
+Sawada, Nozomi. VADER-based Sentiment Analysis Tool. Version 2.0.0, GitHub, 2026, 
 github.com/nozomi-sawada/vader-sentiment-analyzer.
 ```
 
@@ -245,7 +263,7 @@ International Conference on Weblogs and Social Media (ICWSM-14). Ann Arbor, MI.
 
 **This Tool**:
 ```
-Sawada, N. (2025) VADER-based Sentiment Analysis Tool. Version 1.0. Available at: 
+Sawada, N. (2026) VADER-based Sentiment Analysis Tool. Version 2.0.0. Available at: 
 https://github.com/nozomi-sawada/vader-sentiment-analyzer (Accessed: [date]).
 ```
 
@@ -271,11 +289,11 @@ All evaluation datasets in the paper are sentence-level. However, document-level
 A: We recommend one of the following formats:
 
 **For sentence-level analysis:**
-- "Using an implementation (Sawada, 2025) of VADER (Hutto & Gilbert, 2014), we analyzed texts at the sentence level"
-- "We used Sawada's (2025) VADER implementation and performed sentence-level analysis as recommended by the paper"
+- "Using an implementation (Sawada, 2026) of VADER (Hutto & Gilbert, 2014), we analyzed texts at the sentence level"
+- "We used Sawada's (2026) VADER implementation and performed sentence-level analysis as recommended by the paper"
 
 **For document-level analysis:**
-- "Using VADER (Hutto & Gilbert, 2014; implementation: Sawada, 2025), we analyzed entire texts"
+- "Using VADER (Hutto & Gilbert, 2014; implementation: Sawada, 2026), we analyzed entire texts"
 
 ### Q4: Should I cite the lexicon file source?
 
@@ -294,17 +312,17 @@ A: Yes, for reproducibility, we recommend one of the following:
 
 1. **Version number** (if released)
    ```
-   Sawada (2025, version 1.0)
+   Sawada (2026, version 2.0.0)
    ```
 
 2. **Access date**
    ```
-   Sawada (2025, accessed January 15, 2025)
+   Sawada (2026, accessed September 13, 2026)
    ```
 
 3. **Commit hash** (for technical papers)
    ```
-   Sawada (2025, commit a1b2c3d)
+   Sawada (2026, commit a1b2c3d)
    ```
 
 ### Q6: What if I used the emoji lexicon?
@@ -373,7 +391,7 @@ We recommend including the following information in your Methods section:
 ### Template 1: Minimal Description
 
 ```
-Sentiment analysis used an implementation (Sawada, 2025) of VADER 
+Sentiment analysis used an implementation (Sawada, 2026) of VADER 
 (Hutto & Gilbert, 2014), analyzing texts at the [sentence/document] level. 
 We used vader_lexicon.txt (v.2014) and classified Compound Score ≥ 0.05 
 as positive, ≤ -0.05 as negative.
@@ -382,7 +400,7 @@ as positive, ≤ -0.05 as negative.
 ### Template 2: Detailed Description
 
 ```
-Sentiment analysis used a web-based implementation (Sawada, 2025) of the 
+Sentiment analysis used a web-based implementation (Sawada, 2026) of the 
 VADER (Valence Aware Dictionary and sEntiment Reasoner; Hutto & Gilbert, 2014) 
 algorithm. VADER combines a sentiment lexicon of approximately 7,500 words 
 (vader_lexicon.txt, v.2014) with five grammatical rules (negation, boosters, 

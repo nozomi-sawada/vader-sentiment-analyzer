@@ -20,6 +20,13 @@ This tool is a browser-based implementation of the VADER (Valence Aware Dictiona
 
 ![Analysis result screen](docs/images/screenshot-analysis-en.png)
 
+> [!IMPORTANT]
+> **Version 2.0.0 produces different scores than earlier versions.** The engine was
+> replaced with a faithful port of the reference Python implementation, correcting
+> several rules (emoticon tokenization, punctuation emphasis, pos/neu/neg proportions,
+> negation scope). If you ran analyses with the earlier code and report exact scores,
+> re-run them and state version 2.0.0 in your paper. See [CHANGELOG.md](CHANGELOG.md).
+
 ## Key Features
 
 - **Browser-based** - No installation or server required
@@ -315,7 +322,7 @@ The page sets a Content Security Policy of `script-src 'self'; style-src 'self'`
 
 **English:**
 
-> For sentiment analysis, we employed VADER (Valence Aware Dictionary and sEntiment Reasoner), developed by Hutto & Gilbert (2014). VADER is a lexicon-based approach utilizing approximately 7,500 sentiment-bearing words combined with grammatical and pragmatic rules, specifically designed for social media text analysis. We used the browser-based implementation tool developed by Sawada (2025). Texts with Compound Scores ≥ +0.05 were classified as positive, scores ≤ -0.05 as negative, and intermediate scores as neutral.
+> For sentiment analysis, we employed VADER (Valence Aware Dictionary and sEntiment Reasoner), developed by Hutto & Gilbert (2014). VADER is a lexicon-based approach utilizing approximately 7,500 sentiment-bearing words combined with grammatical and pragmatic rules, specifically designed for social media text analysis. We used the browser-based implementation tool developed by Sawada (2026). Texts with Compound Scores ≥ +0.05 were classified as positive, scores ≤ -0.05 as negative, and intermediate scores as neutral.
 
 #### Results Section
 
@@ -357,10 +364,11 @@ If you use this tool, please cite the original VADER paper:
 ### Optional (This Tool)
 
 ```bibtex
-@software{sawada2025vader,
+@software{sawada2026vader,
   author = {Sawada, Nozomi},
   title = {VADER-based Sentiment Analysis Tool},
-  year = {2025},
+  year = {2026},
+  version = {2.0.0},
   url = {https://github.com/nozomi-sawada/vader-sentiment-analyzer}
 }
 ```
@@ -372,6 +380,7 @@ For more detailed information, see the `docs/` folder:
 - **[ALGORITHM.md](docs/ALGORITHM.md)** - Detailed algorithm implementation
 - **[LEXICON.md](docs/LEXICON.md)** - Lexicon structure and annotation methodology
 - **[CITATION.md](docs/CITATION.md)** - Detailed citation guide for academic use
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history, including which rules changed the scores
 
 
 ## License
