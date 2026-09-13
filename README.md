@@ -21,7 +21,7 @@ This tool is a browser-based implementation of the VADER (Valence Aware Dictiona
 ![Analysis result screen](docs/images/screenshot-analysis-en.png)
 
 > [!IMPORTANT]
-> **Version 2.0.0 produces different scores than earlier versions.** The engine was
+> **Version 2.0.0 produces different scores than the earlier code.** The engine was
 > replaced with a faithful port of the reference Python implementation, correcting
 > several rules (emoticon tokenization, punctuation emphasis, pos/neu/neg proportions,
 > negation scope). If you ran analyses with the earlier code and report exact scores,
